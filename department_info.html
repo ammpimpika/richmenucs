@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการข้อมูลภาควิชา</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลภาควิชา</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="deptForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0">
+        <input type="hidden" id="deptId" name="id">
+        <div class="flex-1">
+          <label class="block mb-1">ชื่อปริญญา</label>
+          <input type="text" id="degreeName" name="degree_name" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">การสนับสนุนการเรียนรู้</label>
+          <textarea id="learningSupport" name="learning_support" rows="2" class="w-full border rounded px-3 py-2" required></textarea>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ID</th>
+            <th class="py-2">ชื่อปริญญา</th>
+            <th class="py-2">การสนับสนุนการเรียนรู้</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="deptTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลภาควิชา
+    function loadDept() {
+      fetch('api/department_info.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('deptTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.id}</td>
+                <td class="py-2">${item.degree_name}</td>
+                <td class="py-2 text-left whitespace-pre-line">${item.learning_support}</td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editDept(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteDept(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('deptForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('deptForm');
+      const formData = new FormData(form);
+      fetch('api/department_info.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadDept();
+        });
+    };
+
+    // แก้ไข
+    function editDept(id) {
+      fetch('api/department_info.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('deptId').value = item.id;
+          document.getElementById('degreeName').value = item.degree_name;
+          document.getElementById('learningSupport').value = item.learning_support;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ลบ
+    function deleteDept(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/department_info.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadDept());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('deptForm').reset();
+      document.getElementById('deptId').value = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadDept();
+  </script>
+</body>
+</html> 

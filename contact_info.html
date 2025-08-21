@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการข้อมูลติดต่อ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลติดต่อ</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="contactForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0">
+        <input type="hidden" id="contactId" name="id">
+        <div class="flex-1">
+          <label class="block mb-1">เบอร์โทรศัพท์</label>
+          <input type="text" id="phoneNumber" name="phone_number" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">Facebook Page</label>
+          <input type="text" id="facebookPage" name="facebook_page" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">Website</label>
+          <input type="text" id="website" name="website" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ID</th>
+            <th class="py-2">เบอร์โทรศัพท์</th>
+            <th class="py-2">Facebook Page</th>
+            <th class="py-2">Website</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="contactTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลติดต่อ
+    function loadContact() {
+      fetch('api/contact_info.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('contactTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.id}</td>
+                <td class="py-2">${item.phone_number}</td>
+                <td class="py-2">${item.facebook_page ? `<a href="${item.facebook_page}" target="_blank" class="text-blue-500 underline">${item.facebook_page}</a>` : '-'}</td>
+                <td class="py-2">${item.website ? `<a href="${item.website}" target="_blank" class="text-blue-500 underline">${item.website}</a>` : '-'}</td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editContact(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteContact(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('contactForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('contactForm');
+      const formData = new FormData(form);
+      fetch('api/contact_info.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadContact();
+        });
+    };
+
+    // แก้ไข
+    function editContact(id) {
+      fetch('api/contact_info.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('contactId').value = item.id;
+          document.getElementById('phoneNumber').value = item.phone_number;
+          document.getElementById('facebookPage').value = item.facebook_page;
+          document.getElementById('website').value = item.website;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ลบ
+    function deleteContact(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/contact_info.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadContact());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('contactForm').reset();
+      document.getElementById('contactId').value = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadContact();
+  </script>
+</body>
+</html> 

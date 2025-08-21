@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แผนการเรียนภาควิชาวิทยาการคอมพิวเตอร์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .modal-bg { background: rgba(0,0,0,0.7); }
+  </style>
+</head>
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-4xl mx-auto py-10">
+    <h1 class="text-2xl font-bold text-center mb-8 text-white">แผนการเรียนภาควิชาวิทยาการคอมพิวเตอร์</h1>
+    <div id="curriculumList" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center z-50 modal-bg">
+    <div class="bg-white rounded-lg shadow-lg p-4 max-w-2xl w-full relative">
+      <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+      <img id="modalImg" src="" alt="แผนการเรียน" class="w-full max-h-[70vh] object-contain rounded">
+      <div id="modalTitle" class="text-center mt-4 font-semibold text-lg"></div>
+    </div>
+  </div>
+
+  <script>
+    // โหลดข้อมูลแผนการเรียน
+    fetch('api/curriculum_plan.php')
+      .then(res => res.json())
+      .then(data => {
+        // จัดกลุ่มตามปีและเทอม
+        const yearMap = {1: 'ปี 1', 2: 'ปี 2', 3: 'ปี 3', 4: 'ปี 4'};
+        const semMap = {1: 'เทอม 1', 2: 'เทอม 2', 3: 'ฤดูร้อน'};
+        // เรียงข้อมูล
+        data.sort((a, b) => a.year_level - b.year_level || a.semester - b.semester);
+        const list = document.getElementById('curriculumList');
+        data.forEach(item => {
+          const year = yearMap[item.year_level] || `ปี ${item.year_level}`;
+          const sem = semMap[item.semester] || `เทอม ${item.semester}`;
+          const title = `${year} ${sem}`;
+          const img = item.image_url ? `<img src="${item.image_url}" alt="${title}" class="rounded shadow cursor-pointer hover:scale-105 transition" onclick="showModal('${item.image_url}', '${title}')">` : '<div class="bg-gray-200 h-40 flex items-center justify-center rounded">ไม่มีรูป</div>';
+          list.innerHTML += `
+            <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+              <div class="font-semibold mb-2 text-center">${title}</div>
+              <div class="w-full flex justify-center">${img}</div>
+            </div>
+          `;
+        });
+      });
+
+    // Modal functions
+    function showModal(imgUrl, title) {
+      document.getElementById('modalImg').src = imgUrl;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal').classList.add('flex');
+    }
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('modal').classList.remove('flex');
+      document.getElementById('modalImg').src = '';
+      document.getElementById('modalTitle').textContent = '';
+    }
+    // ปิด modal เมื่อคลิกพื้นหลัง
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+  </script>
+</body>
+</html> 
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      background-color: #1a1a1a;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .counter-text {
+      margin-bottom: 40px;
+      font-size: 1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+ <div class="counter-text">
+  จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
+</div>
+
+<script>
+  fetch('https://api.countapi.xyz/hit/myweb-counter-curriculum/visits')
+    .then(res => res.json())
+    .then(res => document.getElementById('count').textContent = res.value)
+    .catch(err => console.error(err));
+</script>
+
+
+

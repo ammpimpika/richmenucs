@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ติดต่อภาควิชาวิทยาการคอมพิวเตอร์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-xl mx-auto py-10">
+    <h1 class="text-2xl font-bold text-center mb-8 text-white">ช่องทางติดต่อภาควิชาวิทยาการคอมพิวเตอร์</h1>
+    <div id="contactInfo" class="space-y-6"></div>
+  </div>
+  <script>
+    fetch('api/contact_info.php')
+      .then(res => res.json())
+      .then(data => {
+        const info = data[0] || {};
+        const contactDiv = document.getElementById('contactInfo');
+        contactDiv.innerHTML = `
+          <div class="flex items-center gap-4 bg-white rounded-lg shadow p-4">
+            <span class="text-blue-500 text-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0-1.243 1.007-2.25 2.25-2.25h2.386c.51 0 .955.343 1.09.835l.527 1.89a1.125 1.125 0 01-.282 1.11l-1.07 1.07a16.015 16.015 0 006.006 6.006l1.07-1.07a1.125 1.125 0 011.11-.282l1.89.527c.492.135.835.58.835 1.09v2.386a2.25 2.25 0 01-2.25 2.25h-.75C6.798 20.25 3.75 13.202 3.75 7.5v-.75z" /></svg>
+            </span>
+            <span class="font-semibold">เบอร์โทรศัพท์:</span>
+            <a href="tel:${info.phone_number || ''}" class="text-blue-600 hover:underline">${info.phone_number || '-'}</a>
+          </div>
+          <div class="flex items-center gap-4 bg-white rounded-lg shadow p-4">
+            <span class="text-green-600 text-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1.5m0 15V21m8.25-9H21m-18 0h1.5m15.364 6.364l-1.06-1.06M4.636 4.636l1.06 1.06m12.728 0l-1.06 1.06M4.636 19.364l1.06-1.06M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" /></svg>
+            </span>
+            <span class="font-semibold">เว็บไซต์:</span>
+            <a href="${info.website || '#'}" target="_blank" class="text-green-700 hover:underline">${info.website || '-'}</a>
+          </div>
+          <div class="flex items-center gap-4 bg-white rounded-lg shadow p-4">
+            <span class="text-blue-700 text-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-7 h-7"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.408 24 22.674V1.326C24 .592 23.406 0 22.675 0"/></svg>
+            </span>
+            <span class="font-semibold">Facebook Page:</span>
+            <a href="${info.facebook_page || '#'}" target="_blank" class="text-blue-700 hover:underline">${info.facebook_page || '-'}</a>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html> 
+
+<div class="text-center text-white">
+  จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
+</div>
+
+<script>
+  fetch('https://api.countapi.xyz/hit/myweb-counter-contact/visits')
+    .then(res => res.json())
+    .then(res => document.getElementById('count').textContent = res.value)
+    .catch(err => console.error(err));
+</script>

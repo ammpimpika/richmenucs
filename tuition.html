@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ข้อมูลค่าเล่าเรียนและค่าใช้จ่ายอื่น ๆ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-2xl mx-auto py-10">
+    <h1 class="text-2xl font-bold text-center mb-8 text-white">ข้อมูลค่าเล่าเรียนและค่าใช้จ่ายอื่น ๆ</h1>
+    <div id="tuitionInfo"></div>
+  </div>
+  <script>
+    fetch('api/tuition_fee.php')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.length) {
+          document.getElementById('tuitionInfo').innerHTML = '<div class="text-center text-gray-500">ไม่พบข้อมูลค่าเล่าเรียน</div>';
+          return;
+        }
+        // แสดงข้อมูลแต่ละรายการ
+        let html = '';
+        data.forEach(item => {
+          html += `
+            <div class="bg-white border border-slate-200 rounded-xl shadow p-6 mb-6">
+              <div class="mb-4">
+                <div class="font-semibold text-lg text-slate-800 mb-1">ค่าธรรมเนียมการเรียน</div>
+                <div class="text-slate-700 whitespace-pre-line">${item.description || '-'}</div>
+              </div>
+              <div>
+                <div class="font-semibold text-lg text-slate-800 mb-1">ค่าใช้จ่ายเพิ่มเติม</div>
+                <div class="text-slate-700 whitespace-pre-line">${item.other_expenses || '-'}</div>
+              </div>
+            </div>
+          `;
+        });
+        document.getElementById('tuitionInfo').innerHTML = html;
+      });
+  </script>
+</body>
+</html> 
+
+ <!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end; /* ดันตัวนับไปด้านล่าง */
+      align-items: center;
+      background-color: #1a1a1a; /* พื้นหลังเข้ม */
+      font-family: Arial, sans-serif;
+      color: white; /* ตัวหนังสือสีขาว */
+    }
+
+    .counter-text {
+      margin-bottom: 40px; /* เว้นขอบด้านล่าง */
+      font-size: 1.0em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ตัวนับผู้เข้าชม -->
+  <div class="counter-text">
+    จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
+  </div>
+
+  <script>
+    fetch('https://api.countapi.xyz/hit/myweb-counter-tuition/visits')
+      .then(res => res.json())
+      .then(res => document.getElementById('count').textContent = res.value)
+      .catch(err => console.error(err));
+  </script>
+
+</body>
+</html>

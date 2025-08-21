@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการข้อมูลศิษย์เก่า</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-4xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลศิษย์เก่า</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="alumniForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0" enctype="multipart/form-data">
+        <input type="hidden" id="alumniId" name="id">
+        <div class="flex-1">
+          <label class="block mb-1">ชื่อเล่น</label>
+          <input type="text" id="nickname" name="nickname" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">ชื่อจริง</label>
+          <input type="text" id="firstName" name="first_name" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">นามสกุล</label>
+          <input type="text" id="lastName" name="last_name" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">ตำแหน่งงาน</label>
+          <input type="text" id="jobTitle" name="job_title" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">บริษัท</label>
+          <input type="text" id="company" name="company" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">รูปภาพ</label>
+          <input type="file" id="image" name="image" accept="image/*" class="w-full border rounded px-3 py-2">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4 overflow-x-auto">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ID</th>
+            <th class="py-2">ชื่อเล่น</th>
+            <th class="py-2">ชื่อจริง</th>
+            <th class="py-2">นามสกุล</th>
+            <th class="py-2">ตำแหน่งงาน</th>
+            <th class="py-2">บริษัท</th>
+            <th class="py-2">รูปภาพ</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="alumniTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลศิษย์เก่า
+    function loadAlumni() {
+      fetch('api/alumni.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('alumniTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.id}</td>
+                <td class="py-2">${item.nickname}</td>
+                <td class="py-2">${item.first_name}</td>
+                <td class="py-2">${item.last_name}</td>
+                <td class="py-2">${item.job_title || '-'}</td>
+                <td class="py-2">${item.company || '-'}</td>
+                <td class="py-2">
+                  ${item.image ? `<img src="uploads/${item.image}" alt="alumni" class="mx-auto w-12 h-12 object-cover rounded-full mb-2">` : ''}
+                  <div class="flex flex-col gap-2 md:flex-row md:justify-center">
+                    <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                    <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('alumniForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('alumniForm');
+      const formData = new FormData(form);
+      fetch('api/alumni.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadAlumni();
+        });
+    };
+
+    // แก้ไข
+    function editAlumni(id) {
+      fetch('api/alumni.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('alumniId').value = item.id;
+          document.getElementById('nickname').value = item.nickname;
+          document.getElementById('firstName').value = item.first_name;
+          document.getElementById('lastName').value = item.last_name;
+          document.getElementById('jobTitle').value = item.job_title;
+          document.getElementById('company').value = item.company;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ลบ
+    function deleteAlumni(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/alumni.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadAlumni());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('alumniForm').reset();
+      document.getElementById('alumniId').value = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadAlumni();
+  </script>
+</body>
+</html> 

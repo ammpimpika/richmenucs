@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการข้อมูลอาชีพ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลอาชีพ</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="careerForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0">
+        <input type="hidden" id="careerId" name="id">
+        <div class="flex-1">
+          <label class="block mb-1">ชื่อตำแหน่งงาน</label>
+          <input type="text" id="jobTitle" name="job_title" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">เงินเดือนเริ่มต้น</label>
+          <input type="number" id="startingSalary" name="starting_salary" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">จุดเด่น/รายละเอียด</label>
+          <textarea id="highlight" name="highlight" rows="2" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ID</th>
+            <th class="py-2">ชื่อตำแหน่งงาน</th>
+            <th class="py-2">เงินเดือนเริ่มต้น</th>
+            <th class="py-2">จุดเด่น/รายละเอียด</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="careerTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลอาชีพ
+    function loadCareers() {
+      fetch('api/careers.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('careerTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.id}</td>
+                <td class="py-2">${item.job_title}</td>
+                <td class="py-2">${item.starting_salary}</td>
+                <td class="py-2 text-left whitespace-pre-line">${item.highlight}</td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editCareer(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteCareer(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('careerForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('careerForm');
+      const formData = new FormData(form);
+      fetch('api/careers.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadCareers();
+        });
+    };
+
+    // แก้ไข
+    function editCareer(id) {
+      fetch('api/careers.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('careerId').value = item.id;
+          document.getElementById('jobTitle').value = item.job_title;
+          document.getElementById('startingSalary').value = item.starting_salary;
+          document.getElementById('highlight').value = item.highlight;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ลบ
+    function deleteCareer(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/careers.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadCareers());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('careerForm').reset();
+      document.getElementById('careerId').value = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadCareers();
+  </script>
+</body>
+</html> 

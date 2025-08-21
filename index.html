@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการข้อมูลภาควิชาคอมพิวเตอร์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="absolute top-6 right-8 z-50">
+    <a href="logout.php" class="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow transition font-semibold">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m-3-3h12m0 0l-3-3m3 3l-3 3" />
+      </svg>
+      ออกจากระบบ
+    </a>
+  </div>
+  <div class="max-w-4xl mx-auto py-10">
+    <div class="bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl shadow p-8 mb-10 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">ยินดีต้อนรับสู่ระบบจัดการข้อมูล</h1>
+      <p class="text-white text-lg md:text-xl">ภาควิชาวิทยาการคอมพิวเตอร์<br>เลือกเมนูด้านล่างเพื่อจัดการข้อมูลต่างๆ</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- 1 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">แผนหลักสูตร</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลแผนหลักสูตร</div>
+        <a href="curriculum_plan.html" class="px-4 py-2 rounded bg-blue-500 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 2 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">อาจารย์</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลอาจารย์</div>
+        <a href="teachers.html" class="px-4 py-2 rounded bg-green-500 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 3 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">ศิษย์เก่า</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลศิษย์เก่า</div>
+        <a href="alumni.html" class="px-4 py-2 rounded bg-purple-400 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 4 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">อาชีพ</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลอาชีพ</div>
+        <a href="careers.html" class="px-4 py-2 rounded bg-yellow-400 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 5 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">กิจกรรมภาควิชา</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลกิจกรรมภาควิชา</div>
+        <a href="department_activities.html" class="px-4 py-2 rounded bg-red-500 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 6 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">รหัสการแต่งกาย</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลการแต่งกาย</div>
+        <a href="dress_codes.html" class="px-4 py-2 rounded bg-blue-600 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 7 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">ข้อมูลภาควิชา</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลภาควิชา</div>
+        <a href="department_info.html" class="px-4 py-2 rounded bg-cyan-500 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 8 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">ค่าเทอม</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลค่าเทอม</div>
+        <a href="tuition_fee.html" class="px-4 py-2 rounded bg-orange-400 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+      <!-- 9 -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <div class="font-bold text-lg mb-1">ข้อมูลติดต่อ</div>
+        <div class="text-gray-500 mb-4 text-sm">จัดการข้อมูลติดต่อ</div>
+        <a href="contact_info.html" class="px-4 py-2 rounded bg-orange-500 text-white font-semibold">แก้ไขข้อมูล</a>
+      </div>
+    </div>
+   
+  </div>
+</body>
+</html> 

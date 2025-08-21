@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการกิจกรรมภาควิชา</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการกิจกรรมภาควิชา</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="activityForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0" enctype="multipart/form-data">
+        <input type="hidden" id="activityId" name="id">
+        <div>
+          <label class="block mb-1">ชื่อกิจกรรม</label>
+          <input type="text" id="activityName" name="activity_name" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">อัปโหลดรูปภาพกิจกรรม</label>
+          <input type="file" id="activityImageFile" name="activity_image_file" accept="image/*" class="w-full border rounded px-3 py-2">
+          <div id="preview" class="mt-2"></div>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ID</th>
+            <th class="py-2">ชื่อกิจกรรม</th>
+            <th class="py-2">รูปภาพกิจกรรม</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="activityTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลกิจกรรม
+    function loadActivities() {
+      fetch('api/department_activities.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('activityTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.id}</td>
+                <td class="py-2">${item.activity_name}</td>
+                <td class="py-2">
+                  ${item.activity_image_url ? `<img src="${item.activity_image_url}" class="h-16 mx-auto rounded shadow">` : '-'}
+                </td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editActivity(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteActivity(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('activityForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('activityForm');
+      const formData = new FormData(form);
+      fetch('api/department_activities.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadActivities();
+        });
+    };
+
+    // แสดง preview รูป
+    document.getElementById('activityImageFile').addEventListener('change', function(e) {
+      const preview = document.getElementById('preview');
+      preview.innerHTML = '';
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          preview.innerHTML = `<img src="${ev.target.result}" class="max-h-32 mt-2 rounded shadow">`;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+
+    // แก้ไข
+    function editActivity(id) {
+      fetch('api/department_activities.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('activityId').value = item.id;
+          document.getElementById('activityName').value = item.activity_name;
+          document.getElementById('activityImageFile').value = '';
+          document.getElementById('preview').innerHTML = item.activity_image_url ? `<img src="${item.activity_image_url}" class="max-h-32 mt-2 rounded shadow">` : '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // ลบ
+    function deleteActivity(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/department_activities.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadActivities());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('activityForm').reset();
+      document.getElementById('activityId').value = '';
+      document.getElementById('preview').innerHTML = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadActivities();
+  </script>
+</body>
+</html> 

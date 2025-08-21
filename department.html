@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ข้อมูลภาควิชา</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-5xl mx-auto py-10">
+    <h1 class="text-2xl font-bold text-center mb-8 text-white">ข้อมูลภาควิชาวิทยาการคอมพิวเตอร์</h1>
+    <!-- ข้อมูลภาควิชา -->
+    <div id="deptInfo" class="mb-10"></div>
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-slate-800 bg-slate-200 rounded-lg px-6 py-3 border-b-2 border-slate-300 shadow-sm inline-block">อาจารย์ประจำภาควิชา</h2>
+    </div>
+    <div id="teacherList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"></div>
+  </div>
+  <script>
+    // โหลดข้อมูลภาควิชา
+    fetch('api/department_info.php')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.length) return;
+        // รวมชื่อปริญญาทั้งหมด
+        let degreeNames = [];
+        let supports = [];
+        data.forEach(info => {
+          if (info.degree_name) degreeNames.push(info.degree_name);
+          if (info.learning_support) supports.push(info.learning_support);
+        });
+        // กำหนดชื่อปริญญาและตัวย่อแบบที่ผู้ใช้ต้องการ
+        const degreeBlock = `
+          <div class="mb-4">
+            <div class="font-extrabold text-lg uppercase text-slate-800 mb-1">ชื่อปริญญา</div>
+            <div class="text-slate-700 font-semibold">วิทยาศาสตรบัณฑิต (วิทยาการคอมพิวเตอร์)</div>
+            <div class="text-slate-700 font-semibold">Bachelor of Science (Computer Science)</div>
+            <div class="text-slate-700 font-semibold">วท.บ. (วิทยาการคอมพิวเตอร์) หรือ B.Sc. (Computer Science)</div>
+          </div>
+        `;
+        // สิ่งสนับสนุนการเรียนรู้ (bullet list)
+        const supportList = [
+          'ห้องเรียนคอมพิวเตอร์ ที่มีเครื่องคอมพิวเตอร์ประสิทธิภาพสูง พร้อมซอฟต์แวร์เฉพาะด้าน เช่น Python, Java, Visual Studio, Unity, SQL Server',
+          'เครือข่ายอินเทอร์เน็ตและ Wi-Fi ครอบคลุมพื้นที่เรียน',
+          'อาจารย์ที่ปรึกษา (Advisor) ให้คำปรึกษาเรื่องการเรียน การวางแผนหลักสูตร และการทำโครงงาน'
+        ];
+        const supportBlock = `
+          <div>
+            <div class="font-semibold text-slate-700 mb-1">การสนับสนุนการเรียนรู้:</div>
+            <ul class="list-disc pl-6 text-slate-600 space-y-1">
+              ${supportList.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+        document.getElementById('deptInfo').innerHTML = `
+          <div class="bg-slate-100 border border-slate-200 rounded-xl shadow p-6 mb-4">
+            ${degreeBlock}
+            ${supportBlock}
+          </div>
+        `;
+      });
+    // โหลดข้อมูลอาจารย์
+    fetch('api/teachers.php')
+      .then(res => res.json())
+      .then(data => {
+        const list = document.getElementById('teacherList');
+        if (!data.length) {
+          list.innerHTML = '<div class="col-span-full text-center text-gray-500">ไม่พบข้อมูลอาจารย์</div>';
+          return;
+        }
+        data.forEach(item => {
+          list.innerHTML += `
+            <div class="bg-white border border-slate-200 rounded-xl shadow p-6 flex flex-col items-center">
+              <div class="w-28 h-28 mb-4 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
+                ${item.image_url ? `<img src="${item.image_url}" alt="${item.full_name}" class="object-cover w-full h-full">` : '<span class="text-slate-400">ไม่มีรูป</span>'}
+              </div>
+              <div class="font-semibold text-lg text-center text-slate-700">${item.full_name}</div>
+            </div>
+          `;
+        });
+      });
+  </script>
+</body>
+</html> 
+
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end; /* ดันตัวนับไปด้านล่าง */
+      align-items: center;
+      background-color: #1a1a1a; /* พื้นหลังเข้ม */
+      font-family: Arial, sans-serif;
+      color: white; /* ตัวหนังสือสีขาว */
+    }
+
+    .counter-text {
+      margin-bottom: 40px; /* เว้นขอบด้านล่าง */
+      font-size: 1.0em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  
+<div class="counter-text">
+  จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
+</div>
+
+<script>
+  fetch('https://api.countapi.xyz/hit/myweb-counter-department/visits')
+    .then(res => res.json())
+    .then(res => document.getElementById('count').textContent = res.value)
+    .catch(err => console.error(err));
+</script>
+
+
