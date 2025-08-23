@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายงานการใช้งานแชทบอท</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-5xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">📊 รายงานการใช้งานแชทบอท</h1>
+
+    <!-- กราฟจำนวนผู้ใช้งาน -->
+    <div class="bg-white p-6 rounded-xl shadow mb-8">
+      <h2 class="text-lg font-semibold mb-4">จำนวนข้อความต่อวัน</h2>
+      <canvas id="usageChart"></canvas>
+    </div>
+
+    <!-- ตารางคำถามยอดนิยม -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-lg font-semibold mb-4">คำถามยอดนิยม</h2>
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border px-4 py-2 text-left">คำถาม</th>
+            <th class="border px-4 py-2">จำนวนครั้ง</th>
+          </tr>
+        </thead>
+        <tbody id="faqTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    
