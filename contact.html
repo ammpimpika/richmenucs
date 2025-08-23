@@ -45,13 +45,12 @@
 </body>
 </html> 
 
-<div class="text-center text-white">
-  จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
+<div style="margin:20px 0; text-align:center; font-size:16px; color:#333;">
+    <span class="text-white">👁 ผู้เข้าชม </span><span id="count" class="text-white">0</span><span class="text-white"> คน</span>
 </div>
-
 <script>
-  fetch('https://api.countapi.xyz/hit/myweb-counter-contact/visits')
+  fetch("counter.php?page=contact")
     .then(res => res.json())
-    .then(res => document.getElementById('count').textContent = res.value)
+    .then(data => document.getElementById("count").textContent = data.visits)
     .catch(err => console.error(err));
 </script>

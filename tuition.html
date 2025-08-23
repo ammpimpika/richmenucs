@@ -71,16 +71,15 @@
 <body>
 
   <!-- ตัวนับผู้เข้าชม -->
-  <div class="counter-text">
-    จำนวนผู้เข้าชมเว็บ🧍🏼: <span id="count">0</span>
-  </div>
-
-  <script>
-    fetch('https://api.countapi.xyz/hit/myweb-counter-tuition/visits')
-      .then(res => res.json())
-      .then(res => document.getElementById('count').textContent = res.value)
-      .catch(err => console.error(err));
-  </script>
+<div style="margin:20px 0; text-align:center; font-size:16px; color:#FFFFFF;">
+    <span class="text-white">👁 ผู้เข้าชม </span><span id="count" class="text-white">0</span><span class="text-white"> คน</span>
+</div>
+<script>
+  fetch("counter.php?page=tuition")
+    .then(res => res.json())
+    .then(data => document.getElementById("count").textContent = data.visits)
+    .catch(err => console.error(err));
+</script>
 
 </body>
 </html>
