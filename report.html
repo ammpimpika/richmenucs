@@ -6,25 +6,116 @@
   <title>รายงานการใช้งานแชทบอท</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-  <div class="max-w-5xl mx-auto py-10">
+  <div class="max-w-5xl mx-auto py-10" id="reportContent">
     <h1 class="text-2xl font-bold mb-6 text-center">📊 รายงานการใช้งานแชทบอท</h1>
 
     <!-- ตารางคำถามยอดนิยม -->
-    <div class="bg-white p-6 rounded-xl shadow">
+    <div class="bg-white p-6 rounded-xl shadow mb-8">
       <h2 class="text-lg font-semibold mb-4">คำถามยอดนิยม</h2>
-      <table class="w-full border-collapse">
+      <div id="loading" class="text-gray-500 text-center mb-2">กำลังโหลดข้อมูล...</div>
+      <table class="w-full border-collapse hidden" id="faqTable">
         <thead>
           <tr class="bg-gray-200">
             <th class="border px-4 py-2 text-left">คำถาม</th>
-            <th class="border px-4 py-2">จำนวนครั้ง</th>
+            <th class="border px-4 py-2 text-center">จำนวนครั้ง</th>
           </tr>
         </thead>
-        <tbody id="faqTable"></tbody>
+        <tbody></tbody>
       </table>
+    </div>
+
+    <!-- กราฟคำถามยอดนิยม -->
+    <div class="bg-white p-6 rounded-xl shadow mb-8">
+      <h2 class="text-lg font-semibold mb-4">กราฟคำถามยอดนิยม</h2>
+      <canvas id="faqChart"></canvas>
+    </div>
+
+    <!-- ปุ่มดาวน์โหลด PDF -->
+    <div class="text-center">
+      <button id="downloadPdf" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">📄 ดาวน์โหลด PDF</button>
     </div>
   </div>
 
   <script>
-    
+    // URL ของ Google Apps Script Web App
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzgAi0pYLa5i6_j5yU4GCJNl-_ZlyZ9lVsxzfggYvHjM2Pq9Lg9OkRTaC7mzU9aCOew/exec";
+
+    async function fetchData() {
+      const res = await fetch(SHEET_API_URL);
+      const data = await res.json(); // Apps Script ส่ง JSON มาแล้ว
+      return data; // [{question: "...", count: ...}, ...]
+    }
+
+    let chartInstance;
+
+    async function renderReport() {
+      const rows = await fetchData();
+
+      // แสดงตาราง
+      const table = document.getElementById('faqTable');
+      const tbody = table.querySelector('tbody');
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="border px-4 py-2">${r.question}</td>
+          <td class="border px-4 py-2 text-center">${r.count}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('loading').classList.add('hidden');
+      table.classList.remove('hidden');
+
+      // สร้าง gradient สำหรับกราฟ
+      const ctx = document.getElementById('faqChart').getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
+
+      // แสดงกราฟ
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: rows.map(r => r.question),
+          datasets: [{
+            label: 'จำนวนครั้ง',
+            data: rows.map(r => r.count),
+            backgroundColor: gradient,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    renderReport();
+
+    // ดาวน์โหลด PDF
+    document.getElementById('downloadPdf').addEventListener('click', async () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'pt', 'a4');
+
+      const element = document.getElementById('reportContent');
+      const canvas = await html2canvas(element, { scale: 3 }); // scale สูงขึ้น => ความคมชัด PDF สูงขึ้น
+      const imgData = canvas.toDataURL('image/png');
+
+      const imgProps = doc.getImageProperties(imgData);
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      doc.save('report_chatbot.pdf');
+    });
+  </script>
+</body>
+</html>
