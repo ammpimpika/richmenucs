@@ -16,7 +16,6 @@
     <!-- ตารางคำถามยอดนิยม -->
     <div class="bg-white p-6 rounded-xl shadow mb-8">
       <h2 class="text-lg font-semibold mb-4">คำถามยอดนิยม</h2>
-      <div id="loading" class="text-gray-500 text-center mb-2">กำลังโหลดข้อมูล...</div>
       <table class="w-full border-collapse hidden" id="faqTable">
         <thead>
           <tr class="bg-gray-200">
@@ -66,7 +65,6 @@
         `;
         tbody.appendChild(tr);
       });
-      document.getElementById('loading').classList.add('hidden');
       table.classList.remove('hidden');
 
       // สร้าง gradient สำหรับกราฟ
