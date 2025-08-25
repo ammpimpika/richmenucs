@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-800 min-h-screen">
-  <div class="max-w-2xl mx-auto py-10">
+  <div class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
     <h1 class="text-2xl font-bold text-center mb-8 text-white">ข้อมูลค่าเล่าเรียนและค่าใช้จ่ายอื่น ๆ</h1>
     <div id="tuitionInfo"></div>
   </div>
@@ -26,11 +26,11 @@
             <div class="bg-white border border-slate-200 rounded-xl shadow p-6 mb-6">
               <div class="mb-4">
                 <div class="font-semibold text-lg text-slate-800 mb-1">ค่าธรรมเนียมการเรียน</div>
-                <div class="text-slate-700 whitespace-pre-line">${item.description || '-'}</div>
+                <div class="text-slate-700 whitespace-pre-line text-sm md:text-base">${item.description || '-'}</div>
               </div>
               <div>
                 <div class="font-semibold text-lg text-slate-800 mb-1">ค่าใช้จ่ายเพิ่มเติม</div>
-                <div class="text-slate-700 whitespace-pre-line">${item.other_expenses || '-'}</div>
+                <div class="text-slate-700 whitespace-pre-line text-sm md:text-base">${item.other_expenses || '-'}</div>
               </div>
             </div>
           `;

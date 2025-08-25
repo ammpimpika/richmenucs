@@ -7,14 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-800 min-h-screen">
-  <div class="max-w-5xl mx-auto py-10">
+  <div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
     <h1 class="text-2xl font-bold text-center mb-8 text-white">ข้อมูลภาควิชาวิทยาการคอมพิวเตอร์</h1>
     <!-- ข้อมูลภาควิชา -->
     <div id="deptInfo" class="mb-10"></div>
     <div class="mb-6">
       <h2 class="text-xl font-bold text-slate-800 bg-slate-200 rounded-lg px-6 py-3 border-b-2 border-slate-300 shadow-sm inline-block">อาจารย์ประจำภาควิชา</h2>
     </div>
-    <div id="teacherList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"></div>
+    <div id="teacherList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
   </div>
   <script>
     // โหลดข้อมูลภาควิชา
@@ -71,7 +71,7 @@
         data.forEach(item => {
           list.innerHTML += `
             <div class="bg-white border border-slate-200 rounded-xl shadow p-6 flex flex-col items-center">
-              <div class="w-28 h-28 mb-4 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
+              <div class="w-28 h-28 sm:w-32 sm:h-32 mb-4 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
                 ${item.image_url ? `<img src="${item.image_url}" alt="${item.full_name}" class="object-cover w-full h-full">` : '<span class="text-slate-400">ไม่มีรูป</span>'}
               </div>
               <div class="font-semibold text-lg text-center text-slate-700">${item.full_name}</div>
