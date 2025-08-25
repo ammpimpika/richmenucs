@@ -41,59 +41,111 @@
 
   <script>
     // URL ของ Google Apps Script Web App
+    // รหัสการทำให้ใช้งานได้: AKfycbzgAi0pYLa5i6_j5yU4GCJNl-_ZlyZ9lVsxzfggYvHjM2Pq9Lg9OkRTaC7mzU9aCOew
     const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzgAi0pYLa5i6_j5yU4GCJNl-_ZlyZ9lVsxzfggYvHjM2Pq9Lg9OkRTaC7mzU9aCOew/exec";
 
     async function fetchData() {
-      const res = await fetch(SHEET_API_URL);
-      const data = await res.json(); // Apps Script ส่ง JSON มาแล้ว
-      return data; // [{question: "...", count: ...}, ...]
+        try {
+            const res = await fetch(SHEET_API_URL);
+            
+            // ตรวจสอบสถานะการตอบกลับ
+            if (!res.ok) {
+                console.error("HTTP Error:", res.status, res.statusText);
+                return [];
+            }
+
+            const data = await res.json();
+            
+            // ตรวจสอบว่า Apps Script ส่ง Error กลับมาหรือไม่
+            if (data.error) {
+                console.error("Apps Script Error:", data.error);
+                alert("Error from Google Sheet API: " + data.error + "\n\nโปรดตรวจสอบชื่อ Sheet ในโค้ด Apps Script!");
+                return [];
+            }
+            
+            // ถ้าข้อมูลไม่ใช่อาเรย์ หรือเป็นอาเรย์ว่าง
+            if (!Array.isArray(data) || data.length === 0) {
+                console.warn("No data rows found or data format is unexpected.");
+                return [];
+            }
+            
+            return data;
+            
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            alert("ไม่สามารถเชื่อมต่อกับ Google Sheet API ได้\nโปรดตรวจสอบ URL หรือการเชื่อมต่ออินเทอร์เน็ต");
+            return [];
+        }
     }
 
     let chartInstance;
 
     async function renderReport() {
-      const rows = await fetchData();
-
-      // แสดงตาราง
-      const table = document.getElementById('faqTable');
-      const tbody = table.querySelector('tbody');
-      rows.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="border px-4 py-2">${r.question}</td>
-          <td class="border px-4 py-2 text-center">${r.count}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      table.classList.remove('hidden');
-
-      // สร้าง gradient สำหรับกราฟ
-      const ctx = document.getElementById('faqChart').getContext('2d');
-      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
-      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
-
-      // แสดงกราฟ
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: rows.map(r => r.question),
-          datasets: [{
-            label: 'จำนวนครั้ง',
-            data: rows.map(r => r.count),
-            backgroundColor: gradient,
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: true }
-          },
-          scales: { y: { beginAtZero: true } }
+        const rows = await fetchData();
+        
+        if (rows.length === 0) {
+            // ถ้าไม่มีข้อมูล ให้แสดงข้อความแจ้งเตือน
+            const tableContainer = document.getElementById('faqTable').parentElement;
+            tableContainer.insertAdjacentHTML('afterbegin', '<p class="text-center text-red-500 font-semibold" id="noDataMsg">ไม่พบข้อมูลใน Google Sheet หรือเกิดข้อผิดพลาดในการเชื่อมต่อ/ดึงข้อมูล</p>');
+            return; // หยุดการทำงานถ้าไม่มีข้อมูล
         }
-      });
+
+        // ลบข้อความแจ้งเตือนถ้ามี
+        const noDataMsg = document.getElementById('noDataMsg');
+        if(noDataMsg) noDataMsg.remove();
+
+
+        // แสดงตาราง
+        const table = document.getElementById('faqTable');
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = ''; // เคลียร์ของเดิม (ถ้ามี)
+        
+        rows.forEach(r => {
+            // ตรวจสอบว่า Object มี property 'question' และ 'count' หรือไม่
+            if (r.question && r.count !== undefined && r.count !== null) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="border px-4 py-2">${r.question}</td>
+                    <td class="border px-4 py-2 text-center">${r.count}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+        
+        table.classList.remove('hidden');
+
+        // สร้าง gradient สำหรับกราฟ
+        const ctx = document.getElementById('faqChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
+
+        // ทำลายกราฟเก่าก่อนสร้างใหม่ (ป้องกัน Error หากมีการเรียกซ้ำ)
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+        
+        // แสดงกราฟ
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rows.map(r => r.question),
+                datasets: [{
+                    label: 'จำนวนครั้ง',
+                    data: rows.map(r => r.count),
+                    backgroundColor: gradient,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
     }
 
     renderReport();
@@ -104,7 +156,15 @@
       const doc = new jsPDF('p', 'pt', 'a4');
 
       const element = document.getElementById('reportContent');
-      const canvas = await html2canvas(element, { scale: 3 }); // scale สูงขึ้น => ความคมชัด PDF สูงขึ้น
+      // กำหนดความกว้างให้คงที่ก่อนแปลงเป็น Canvas เพื่อให้กราฟไม่บิดเบี้ยว
+      const originalWidth = element.style.width;
+      element.style.width = '794px'; // ความกว้างประมาณ A4 (595pt)
+
+      const canvas = await html2canvas(element, { scale: 3 }); 
+      
+      // คืนค่าความกว้างเดิม
+      element.style.width = originalWidth;
+
       const imgData = canvas.toDataURL('image/png');
 
       const imgProps = doc.getImageProperties(imgData);
