@@ -47,13 +47,21 @@ async function fetchSheetData() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
   const res = await fetch(url);
   const data = await res.json();
-  if(!data.values || data.values.length < 2) return [];
-  
-  const headers = data.values[0];
-  return data.values.slice(1).map(row => ({
-    question: row[0],
-    count: Number(row[1])
-  }));
+  if (!data.values || data.values.length < 2) return [];
+
+  // ดึง column คำถาม (สมมติเป็น column A)
+  const questions = data.values.slice(1).map(r => r[0].trim());
+
+  // นับจำนวนครั้งแต่ละคำถาม
+  const counts = {};
+  questions.forEach(q => {
+    counts[q] = (counts[q] || 0) + 1;
+  });
+
+  // แปลงเป็น array ของ object { question, count }
+  const rows = Object.keys(counts).map(q => ({ question: q, count: counts[q] }));
+
+  return rows;
 }
 
 async function renderReport() {
