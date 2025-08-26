@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>รายงานการใช้งานแชทบอท</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานจาก Google Sheets</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="max-w-5xl mx-auto py-10" id="reportContent">
     <h1 class="text-2xl font-bold mb-6 text-center">📊 รายงานการใช้งานแชทบอท</h1>
 
-    <!-- ตารางคำถามยอดนิยม -->
     <div class="bg-white p-6 rounded-xl shadow mb-8">
       <h2 class="text-lg font-semibold mb-4">คำถามยอดนิยม</h2>
       <table class="w-full border-collapse hidden" id="faqTable">
@@ -27,153 +26,104 @@
       </table>
     </div>
 
-    <!-- กราฟคำถามยอดนิยม -->
     <div class="bg-white p-6 rounded-xl shadow mb-8">
       <h2 class="text-lg font-semibold mb-4">กราฟคำถามยอดนิยม</h2>
       <canvas id="faqChart"></canvas>
     </div>
 
-    <!-- ปุ่มดาวน์โหลด PDF -->
     <div class="text-center">
       <button id="downloadPdf" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">📄 ดาวน์โหลด PDF</button>
     </div>
   </div>
 
-  <script>
-    // URL ของ Google Apps Script Web App
-    // รหัสการทำให้ใช้งานได้: AKfycbzgAi0pYLa5i6_j5yU4GCJNl-_ZlyZ9lVsxzfggYvHjM2Pq9Lg9OkRTaC7mzU9aCOew
-    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzgAi0pYLa5i6_j5yU4GCJNl-_ZlyZ9lVsxzfggYvHjM2Pq9Lg9OkRTaC7mzU9aCOew/exec";
+<script>
+const SHEET_ID = '1oVKjANdnS0BeBiT-EMjbk8SUIBXDRL5datFd4Wp'; // ใส่ ID ของ Google Sheet ของคุณ
+const RANGE = 'ชีท1!A1:B10'; // ช่วงข้อมูล
+const API_KEY = 'AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ'; // ใส่ API Key
 
-    async function fetchData() {
-        try {
-            const res = await fetch(SHEET_API_URL);
-            
-            // ตรวจสอบสถานะการตอบกลับ
-            if (!res.ok) {
-                console.error("HTTP Error:", res.status, res.statusText);
-                return [];
-            }
+let chartInstance;
 
-            const data = await res.json();
-            
-            // ตรวจสอบว่า Apps Script ส่ง Error กลับมาหรือไม่
-            if (data.error) {
-                console.error("Apps Script Error:", data.error);
-                alert("Error from Google Sheet API: " + data.error + "\n\nโปรดตรวจสอบชื่อ Sheet ในโค้ด Apps Script!");
-                return [];
-            }
-            
-            // ถ้าข้อมูลไม่ใช่อาเรย์ หรือเป็นอาเรย์ว่าง
-            if (!Array.isArray(data) || data.length === 0) {
-                console.warn("No data rows found or data format is unexpected.");
-                return [];
-            }
-            
-            return data;
-            
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            alert("ไม่สามารถเชื่อมต่อกับ Google Sheet API ได้\nโปรดตรวจสอบ URL หรือการเชื่อมต่ออินเทอร์เน็ต");
-            return [];
-        }
+async function fetchSheetData() {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if(!data.values || data.values.length < 2) return [];
+  
+  const headers = data.values[0];
+  return data.values.slice(1).map(row => ({
+    question: row[0],
+    count: Number(row[1])
+  }));
+}
+
+async function renderReport() {
+  const rows = await fetchSheetData();
+  if(rows.length === 0) {
+    document.getElementById('faqTable').parentElement.insertAdjacentHTML('afterbegin', 
+      '<p class="text-center text-red-500 font-semibold">ไม่พบข้อมูลใน Google Sheet</p>'
+    );
+    return;
+  }
+
+  // แสดงตาราง
+  const table = document.getElementById('faqTable');
+  const tbody = table.querySelector('tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="border px-4 py-2">${r.question}</td>
+                    <td class="border px-4 py-2 text-center">${r.count}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.classList.remove('hidden');
+
+  // สร้างกราฟ
+  const ctx = document.getElementById('faqChart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+  gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+  gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
+  
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map(r => r.question),
+      datasets: [{
+        label: 'จำนวนครั้ง',
+        data: rows.map(r => r.count),
+        backgroundColor: gradient,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { enabled: true } },
+      scales: { y: { beginAtZero: true } }
     }
+  });
+}
 
-    let chartInstance;
+renderReport();
 
-    async function renderReport() {
-        const rows = await fetchData();
-        
-        if (rows.length === 0) {
-            // ถ้าไม่มีข้อมูล ให้แสดงข้อความแจ้งเตือน
-            const tableContainer = document.getElementById('faqTable').parentElement;
-            tableContainer.insertAdjacentHTML('afterbegin', '<p class="text-center text-red-500 font-semibold" id="noDataMsg">ไม่พบข้อมูลใน Google Sheet หรือเกิดข้อผิดพลาดในการเชื่อมต่อ/ดึงข้อมูล</p>');
-            return; // หยุดการทำงานถ้าไม่มีข้อมูล
-        }
+// ดาวน์โหลด PDF
+document.getElementById('downloadPdf').addEventListener('click', async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'pt', 'a4');
+  const element = document.getElementById('reportContent');
+  const originalWidth = element.style.width;
+  element.style.width = '794px'; // ความกว้างประมาณ A4
 
-        // ลบข้อความแจ้งเตือนถ้ามี
-        const noDataMsg = document.getElementById('noDataMsg');
-        if(noDataMsg) noDataMsg.remove();
+  const canvas = await html2canvas(element, { scale: 3 });
+  element.style.width = originalWidth;
 
+  const imgData = canvas.toDataURL('image/png');
+  const imgProps = doc.getImageProperties(imgData);
+  const pdfWidth = doc.internal.pageSize.getWidth();
+  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        // แสดงตาราง
-        const table = document.getElementById('faqTable');
-        const tbody = table.querySelector('tbody');
-        tbody.innerHTML = ''; // เคลียร์ของเดิม (ถ้ามี)
-        
-        rows.forEach(r => {
-            // ตรวจสอบว่า Object มี property 'question' และ 'count' หรือไม่
-            if (r.question && r.count !== undefined && r.count !== null) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="border px-4 py-2">${r.question}</td>
-                    <td class="border px-4 py-2 text-center">${r.count}</td>
-                `;
-                tbody.appendChild(tr);
-            }
-        });
-        
-        table.classList.remove('hidden');
-
-        // สร้าง gradient สำหรับกราฟ
-        const ctx = document.getElementById('faqChart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
-        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.3)');
-
-        // ทำลายกราฟเก่าก่อนสร้างใหม่ (ป้องกัน Error หากมีการเรียกซ้ำ)
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-        
-        // แสดงกราฟ
-        chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: rows.map(r => r.question),
-                datasets: [{
-                    label: 'จำนวนครั้ง',
-                    data: rows.map(r => r.count),
-                    backgroundColor: gradient,
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: true }
-                },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-    }
-
-    renderReport();
-
-    // ดาวน์โหลด PDF
-    document.getElementById('downloadPdf').addEventListener('click', async () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'pt', 'a4');
-
-      const element = document.getElementById('reportContent');
-      // กำหนดความกว้างให้คงที่ก่อนแปลงเป็น Canvas เพื่อให้กราฟไม่บิดเบี้ยว
-      const originalWidth = element.style.width;
-      element.style.width = '794px'; // ความกว้างประมาณ A4 (595pt)
-
-      const canvas = await html2canvas(element, { scale: 3 }); 
-      
-      // คืนค่าความกว้างเดิม
-      element.style.width = originalWidth;
-
-      const imgData = canvas.toDataURL('image/png');
-
-      const imgProps = doc.getImageProperties(imgData);
-      const pdfWidth = doc.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      doc.save('report_chatbot.pdf');
-    });
-  </script>
+  doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  doc.save('report_chatbot.pdf');
+});
+</script>
 </body>
 </html>
