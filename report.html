@@ -44,7 +44,7 @@ const API_KEY = 'AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ'; // ใส่ API Key
 let chartInstance;
 
 async function fetchSheetData() {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/1oVKjANdnS0BeBiT-EMjbk8SUIBXDRL5datFd4Wp/values/ชีท1!A1:B10?key=AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ`;
   const res = await fetch(url);
   const data = await res.json();
   if(!data.values || data.values.length < 2) return [];
