@@ -1,10 +1,10 @@
 <?php
 function getConnection() {
-    $host = 'localhost';  
-    $dbname = 'chatbotcomsci'; 
-    $username = 'root';   
-    $password = '';       
-    $port = '3306';      
+    $host = getenv('MYSQL_HOST');       // maglev.proxy.rlwy.net
+    $dbname = getenv('MYSQL_DATABASE'); // railway
+    $username = getenv('MYSQL_USER');   // root
+    $password = getenv('MYSQL_PASSWORD'); // รหัสจาก Railway
+    $port = getenv('MYSQL_PORT');       // 33210
 
     try {
         $pdo = new PDO(
