@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
 
         // โฟลเดอร์สำหรับอัปโหลดบน Railway/public
-        $targetDir = __DIR__ . '/../public/uploads/';
+        $targetDir = __DIR__ . '/uploads/';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
