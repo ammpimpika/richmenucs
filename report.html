@@ -60,7 +60,7 @@ async function fetchSheetData() {
 
   // แปลงเป็น array ของ object { question, count }
   const rows = Object.keys(counts).map(q => ({ question: q, count: counts[q] }));
-
+  rows.sort((a, b) => b.count - a.count);
   return rows;
 }
 
@@ -117,33 +117,46 @@ renderReport();
 document.getElementById('downloadPdf').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'pt', 'a4');
-  const element = document.getElementById('reportContent');
 
-  // ตั้งความกว้างสำหรับ A4
-  const originalWidth = element.style.width;
-  element.style.width = '794px';
+  // clone ตาราง
+  const tableDiv = document.getElementById('faqTable').parentElement;
+  const clone = tableDiv.cloneNode(true);
 
-  // แปลง HTML เป็น canvas
-  const canvas = await html2canvas(element, { scale: 3 });
-  element.style.width = originalWidth;
+  // ลบแถวที่ count <= 1
+  const rows = clone.querySelectorAll('tbody tr');
+  rows.forEach(tr => {
+    const count = parseInt(tr.children[1].textContent);
+    if (count <= 1) tr.remove();
+  });
+
+  // append clone ชั่วคราวใน DOM เพื่อ html2canvas capture
+  clone.style.position = 'absolute';
+  clone.style.left = '-9999px';
+  clone.style.width = '794px';
+  document.body.appendChild(clone);
+
+  // capture
+  const canvas = await html2canvas(clone, { scale: 3, useCORS: true });
+
+  // ลบ clone หลัง capture
+  document.body.removeChild(clone);
 
   const imgData = canvas.toDataURL('image/png');
-
-  const imgProps = doc.getImageProperties(imgData);
   const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  const pdfHeight = doc.internal.pageSize.getHeight();
+  const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  let heightLeft = pdfHeight;
+  let heightLeft = imgHeight;
   let position = 0;
 
-  // วนใส่ภาพลงหลายหน้า
+  doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+  heightLeft -= pdfHeight;
+
   while (heightLeft > 0) {
-    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-    heightLeft -= doc.internal.pageSize.getHeight();
-    if (heightLeft > 0) {
-      doc.addPage();
-      position = -doc.internal.pageSize.getHeight() * (pdfHeight / doc.internal.pageSize.getHeight());
-    }
+    position = heightLeft - imgHeight;
+    doc.addPage();
+    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pdfHeight;
   }
 
   doc.save('report_chatbot.pdf');
