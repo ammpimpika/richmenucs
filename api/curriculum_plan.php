@@ -5,7 +5,7 @@ $conn = getConnection();
 
 // ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum
 function handleCurriculumUpload($file) {
-    $targetDir = dirname(__DIR__) . "/uploads/";
+    $targetDir = __DIR__ . '/public/uploads/'; // เปลี่ยน path ให้ตรงกับ public/uploads
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -16,7 +16,8 @@ function handleCurriculumUpload($file) {
     $targetFile = $targetDir . $filename;
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        return 'uploads/' . $filename;
+        // คืนค่า URL สำหรับ browser เรียกใช้งานได้
+        return '/uploads/' . $filename;
     }
     return null;
 }
@@ -42,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $abs = dirname(__DIR__) . '/' . $img;
+        $abs = __DIR__ . '/public' . $img;
         if ($img && file_exists($abs)) unlink($abs);
 
         $stmt = $conn->prepare("DELETE FROM curriculum_plan WHERE id=?");
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+            $oldAbs = __DIR__ . '/public' . $old_img;
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE curriculum_plan SET year_level=?, semester=?, image_url=? WHERE id=?");
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$_POST['year_level'], $_POST['semester'], $image_url]);
     }
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'image_url' => $image_url]);
     exit;
 }
 ?>

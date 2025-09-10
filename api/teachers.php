@@ -15,19 +15,26 @@ function uploadErrorMessage($code) {
     ];
     return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
 }
+
 function handleUpload($file) {
-    $targetDir = dirname(__DIR__) . "/uploads/"; // use absolute path for Railway
+    // เปลี่ยน path ไป public/uploads
+    $targetDir = __DIR__ . '/public/uploads/';
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
+
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExt = ['jpg','jpeg','png','gif','webp'];
+    if (!in_array($ext, $allowedExt)) return null;
+
     $filename = uniqid('teacher_', true) . '.' . $ext;
     $targetFile = $targetDir . $filename;
+
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        return 'uploads/' . $filename; // return relative public URL
+        return '/uploads/' . $filename; // URL สำหรับ browser
     }
     return null;
 }
 
-// GET (all or by id)
+// ================= GET =================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         $stmt = $conn->prepare("SELECT * FROM teachers WHERE id=?");
@@ -40,16 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// POST (add, update, delete)
+// ================= POST =================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ลบข้อมูล
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-        // ลบไฟล์ภาพเดิม
         $stmt = $conn->prepare("SELECT image_url FROM teachers WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $abs = dirname(__DIR__) . '/' . $img;
-        if ($img && file_exists($abs)) unlink($abs);
+        $absPath = __DIR__ . '/public' . $img;
+        if ($img && file_exists($absPath)) unlink($absPath);
+
         $stmt = $conn->prepare("DELETE FROM teachers WHERE id=?");
         $stmt->execute([$_POST['id']]);
         echo json_encode(['success' => true]);
@@ -69,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => uploadErrorMessage($_FILES['image_file']['error'])]);
         exit;
     } else if (!empty($_POST['id'])) {
-        // ถ้าแก้ไขแต่ไม่ได้อัปโหลดใหม่ ให้ใช้ของเดิม
         $stmt = $conn->prepare("SELECT image_url FROM teachers WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $image_url = $stmt->fetchColumn();
@@ -81,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT image_url FROM teachers WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+            $oldAbs = __DIR__ . '/public' . $old_img;
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE teachers SET full_name=?, image_url=? WHERE id=?");
@@ -90,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("INSERT INTO teachers (full_name, image_url) VALUES (?, ?)");
         $stmt->execute([$_POST['full_name'], $image_url]);
     }
-    echo json_encode(['success' => true]);
+
+    echo json_encode(['success' => true, 'image_url' => $image_url]);
     exit;
 }
-?> 
+?>

@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
 
         // โฟลเดอร์สำหรับอัปโหลดบน Railway/public
-        $targetDir = __DIR__ . '/uploads/';
+       $targetDir = __DIR__ . '/public/uploads/';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    echo json_encode(['success' => true, 'image_url' => $imageName ? '/uploads/' . $imageName : null]);
-    exit;
+ echo json_encode(['success' => true, 'image_url' => $imageName ? '/uploads/' . $imageName : null]);
+exit;
 }
 ?>
