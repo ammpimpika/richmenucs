@@ -3,6 +3,18 @@ require_once '../config/database.php';
 header('Content-Type: application/json');
 $conn = getConnection();
 
+function uploadErrorMessage($code) {
+    $map = [
+        UPLOAD_ERR_INI_SIZE => 'ขนาดไฟล์เกินค่า upload_max_filesize',
+        UPLOAD_ERR_FORM_SIZE => 'ขนาดไฟล์เกินค่า MAX_FILE_SIZE',
+        UPLOAD_ERR_PARTIAL => 'อัปโหลดไฟล์ไม่สมบูรณ์',
+        UPLOAD_ERR_NO_FILE => 'ไม่พบไฟล์ที่อัปโหลด',
+        UPLOAD_ERR_NO_TMP_DIR => 'ไม่มีโฟลเดอร์ชั่วคราว',
+        UPLOAD_ERR_CANT_WRITE => 'ไม่สามารถเขียนไฟล์ลงดิสก์ได้',
+        UPLOAD_ERR_EXTENSION => 'การอัปโหลดถูกหยุดโดยส่วนขยาย',
+    ];
+    return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
+}
 function handleUpload($file) {
     $targetDir = dirname(__DIR__) . "/uploads/"; // use absolute path for Railway
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
@@ -45,8 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $image_url = null;
-    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
         $image_url = handleUpload($_FILES['image_file']);
+        if ($image_url === null) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ย้ายไฟล์ไม่สำเร็จ']);
+            exit;
+        }
+    } else if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => uploadErrorMessage($_FILES['image_file']['error'])]);
+        exit;
     } else if (!empty($_POST['id'])) {
         // ถ้าแก้ไขแต่ไม่ได้อัปโหลดใหม่ ให้ใช้ของเดิม
         $stmt = $conn->prepare("SELECT image_url FROM teachers WHERE id=?");
