@@ -1,11 +1,12 @@
 <?php
 header('Content-Type: application/json');
 
-      $host = 'localhost';  
-    $dbname = 'chatbotcomsci'; 
-    $username = 'root';   
-    $password = '';       
-    $port = '3306';   
+    $host = $_ENV['MYSQL_HOST'] ?? 'mysql.railway.internal';
+    $dbname = $_ENV['MYSQL_DATABASE'] ?? 'railway';
+    $username = $_ENV['MYSQL_USER'] ?? 'root';
+    $password = $_ENV['MYSQL_PASSWORD'] ?? 'eWWnwknGFgttggaFdzTUvIfcoEAMTKSn';
+    $port = $_ENV['MYSQL_PORT'] ?? '3306';
+
 
 $conn = new mysqli($host, $dbname, $username, $password, $port);
 if ($conn->connect_error) {
