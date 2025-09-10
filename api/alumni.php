@@ -3,6 +3,19 @@ require_once '../config/database.php';
 header('Content-Type: application/json');
 $conn = getConnection();
 
+function uploadErrorMessage($code) {
+    $map = [
+        UPLOAD_ERR_INI_SIZE => 'ขนาดไฟล์เกินค่า upload_max_filesize',
+        UPLOAD_ERR_FORM_SIZE => 'ขนาดไฟล์เกินค่า MAX_FILE_SIZE',
+        UPLOAD_ERR_PARTIAL => 'อัปโหลดไฟล์ไม่สมบูรณ์',
+        UPLOAD_ERR_NO_FILE => 'ไม่พบไฟล์ที่อัปโหลด',
+        UPLOAD_ERR_NO_TMP_DIR => 'ไม่มีโฟลเดอร์ชั่วคราว',
+        UPLOAD_ERR_CANT_WRITE => 'ไม่สามารถเขียนไฟล์ลงดิสก์ได้',
+        UPLOAD_ERR_EXTENSION => 'การอัปโหลดถูกหยุดโดยส่วนขยาย',
+    ];
+    return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
+}
+
 // GET (all or by id)
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
@@ -38,9 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $targetPath = $targetDir . $imageName;
         // ย้ายไฟล์อัปโหลดไปยังโฟลเดอร์ปลายทางแบบ absolute path
         if (!move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-            // หากย้ายไม่สำเร็จ ให้ยกเลิกการตั้งชื่อไฟล์ เพื่อไม่ให้บันทึกค่าที่ใช้ไม่ได้
-            $imageName = null;
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ย้ายไฟล์ไม่สำเร็จ']);
+            exit;
         }
+    } elseif (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => uploadErrorMessage($_FILES['image']['error'])]);
+        exit;
     }
 
     if (!empty($_POST['id'])) {
