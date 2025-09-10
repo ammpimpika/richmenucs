@@ -26,12 +26,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // เตรียมตัวแปรสำหรับชื่อไฟล์ภาพ
+    // เตรียมตัวแปรสำหรับชื่อไฟล์ภาพ และรับมือกับสภาพแวดล้อมโฮสต์ (เช่น Railway)
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
-        move_uploaded_file($_FILES['image']['tmp_name'], '../uploads/' . $imageName);
+        $targetDir = dirname(__DIR__) . '/uploads/';
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
+        $targetPath = $targetDir . $imageName;
+        // ย้ายไฟล์อัปโหลดไปยังโฟลเดอร์ปลายทางแบบ absolute path
+        if (!move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+            // หากย้ายไม่สำเร็จ ให้ยกเลิกการตั้งชื่อไฟล์ เพื่อไม่ให้บันทึกค่าที่ใช้ไม่ได้
+            $imageName = null;
+        }
     }
 
     if (!empty($_POST['id'])) {
