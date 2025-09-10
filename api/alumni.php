@@ -31,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // POST (add, update, delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ลบข้อมูล
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
         $stmt = $conn->prepare("DELETE FROM alumni WHERE id=?");
         $stmt->execute([$_POST['id']]);
@@ -39,17 +38,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // เตรียมตัวแปรสำหรับชื่อไฟล์ภาพ และรับมือกับสภาพแวดล้อมโฮสต์ (เช่น Railway)
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
-        $targetDir = dirname(__DIR__) . '/uploads/';
+
+        // โฟลเดอร์สำหรับอัปโหลดบน Railway/public
+        $targetDir = __DIR__ . '/../public/uploads/';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
         $targetPath = $targetDir . $imageName;
-        // ย้ายไฟล์อัปโหลดไปยังโฟลเดอร์ปลายทางแบบ absolute path
+
         if (!move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'ย้ายไฟล์ไม่สำเร็จ']);
@@ -62,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($_POST['id'])) {
-        // กรณีแก้ไข ถ้ามีอัปโหลดรูปใหม่ ให้ update image ด้วย
         if ($imageName) {
             $stmt = $conn->prepare("UPDATE alumni SET nickname=?, first_name=?, last_name=?, job_title=?, company=?, image=? WHERE id=?");
             $stmt->execute([
@@ -96,7 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $imageName
         ]);
     }
-    echo json_encode(['success' => true]);
+
+    echo json_encode(['success' => true, 'image_url' => $imageName ? '/uploads/' . $imageName : null]);
     exit;
 }
-?> 
+?>
