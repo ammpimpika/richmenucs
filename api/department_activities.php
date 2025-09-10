@@ -15,26 +15,19 @@ function uploadErrorMessage($code) {
     ];
     return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
 }
-
 function handleUpload($file) {
-    // เปลี่ยน path เป็น public/uploads
-    $targetDir = __DIR__ . '/public/uploads/';
+    $targetDir = dirname(__DIR__) . "/uploads/"; // absolute path for Railway
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
-
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $allowedExt = ['jpg','jpeg','png','gif','webp'];
-    if (!in_array($ext, $allowedExt)) return null;
-
     $filename = uniqid('activity_', true) . '.' . $ext;
     $targetFile = $targetDir . $filename;
-
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        return '/uploads/' . $filename; // คืนค่า URL สำหรับ browser
+        return 'uploads/' . $filename;
     }
     return null;
 }
 
-// ================= GET =================
+// GET (all or by id)
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         $stmt = $conn->prepare("SELECT * FROM department_activities WHERE id=?");
@@ -47,16 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// ================= POST =================
+// POST (add, update, delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ลบข้อมูล
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+        // ลบไฟล์ภาพเดิม
         $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $abs = __DIR__ . '/public' . $img;
+        $abs = dirname(__DIR__) . '/' . $img;
         if ($img && file_exists($abs)) unlink($abs);
-
         $stmt = $conn->prepare("DELETE FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         echo json_encode(['success' => true]);
@@ -76,17 +69,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => uploadErrorMessage($_FILES['activity_image_file']['error'])]);
         exit;
     } else if (!empty($_POST['id'])) {
+        // ถ้าแก้ไขแต่ไม่ได้อัปโหลดใหม่ ให้ใช้ของเดิม
         $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $activity_image_url = $stmt->fetchColumn();
     }
 
     if (!empty($_POST['id'])) {
+        // ลบไฟล์ภาพเดิมถ้ามีการอัปโหลดใหม่
         if (isset($_FILES['activity_image_file']) && $_FILES['activity_image_file']['error'] === 0) {
             $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = __DIR__ . '/public' . $old_img;
+            $oldAbs = dirname(__DIR__) . '/' . $old_img;
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE department_activities SET activity_name=?, activity_image_url=? WHERE id=?");
@@ -95,9 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("INSERT INTO department_activities (activity_name, activity_image_url) VALUES (?, ?)");
         $stmt->execute([$_POST['activity_name'], $activity_image_url]);
     }
-
-    // คืนค่า URL สำหรับ frontend ใช้แสดงรูป
-    echo json_encode(['success' => true, 'activity_image_url' => $activity_image_url]);
+    echo json_encode(['success' => true]);
     exit;
 }
 ?>

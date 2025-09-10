@@ -82,12 +82,11 @@
                 <td class="py-2">${item.job_title || '-'}</td>
                 <td class="py-2">${item.company || '-'}</td>
                 <td class="py-2">
-                ${item.image_url ? `<img src="${item.image_url}" alt="alumni" class="mx-auto w-12 h-12 object-cover rounded-full mb-2">` : ''}
-<div class="flex flex-col gap-2 md:flex-row md:justify-center">
-  <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
-  <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
-</div>
-
+                   ${item.image ? `<img src="uploads/${item.image}" alt="alumni" class="mx-auto w-12 h-12 object-cover rounded-full mb-2">` : ''}
+                  <div class="flex flex-col gap-2 md:flex-row md:justify-center">
+                    <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                    <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                  </div> 
                 </td>
               </tr>
             `;
@@ -96,95 +95,58 @@
     }
 
     // ฟอร์มเพิ่ม/แก้ไขข้อมูล
-     document.getElementById('alumniForm').onsubmit = function(e) {
-    e.preventDefault();
-    const form = document.getElementById('alumniForm');
-    const formData = new FormData(form);
-    fetch('api/alumni.php', {
-      method: 'POST',
-      body: formData
-    }).then(res => res.json())
-      .then(data => {
-        if(data.success){
-          resetForm();
-          loadAlumni();
-        } else {
-          alert(data.message || 'เกิดข้อผิดพลาด');
-        }
-      });
-  };
-
-  // แก้ไขข้อมูล
-  function editAlumni(id) {
-    fetch('api/alumni.php?id=' + id)
-      .then(res => res.json())
-      .then(item => {
-        document.getElementById('alumniId').value = item.id;
-        document.getElementById('nickname').value = item.nickname;
-        document.getElementById('firstName').value = item.first_name;
-        document.getElementById('lastName').value = item.last_name;
-        document.getElementById('jobTitle').value = item.job_title;
-        document.getElementById('company').value = item.company;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-  }
-
-  // ลบข้อมูล
-  function deleteAlumni(id) {
-    if (confirm('ยืนยันการลบข้อมูล?')) {
-      const formData = new FormData();
-      formData.append('action', 'delete');
-      formData.append('id', id);
+   document.getElementById('alumniForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('alumniForm');
+      const formData = new FormData(form);
       fetch('api/alumni.php', {
         method: 'POST',
         body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if(data.success){
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
           loadAlumni();
-        } else {
-          alert(data.message || 'เกิดข้อผิดพลาด');
-        }
-      });
-    }
-  }
-
-  // ล้างฟอร์ม
-  function resetForm() {
-    document.getElementById('alumniForm').reset();
-    document.getElementById('alumniId').value = '';
-  }
-
-  // โหลดข้อมูล alumni และแสดงตาราง + รูปภาพ
-  function loadAlumni() {
-    fetch('api/alumni.php')
-      .then(res => res.json())
-      .then(data => {
-        const tbody = document.getElementById('alumniTableBody');
-        tbody.innerHTML = '';
-        data.forEach(item => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${item.nickname}</td>
-            <td>${item.first_name}</td>
-            <td>${item.last_name}</td>
-            <td>${item.job_title}</td>
-            <td>${item.company}</td>
-            <td>${item.image_url ? `<img src="${item.image_url}" alt="${item.nickname}">` : ''}</td>
-            <td>
-              <button onclick="editAlumni(${item.id})">แก้ไข</button>
-              <button onclick="deleteAlumni(${item.id})">ลบ</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
         });
-      });
-  }
+    };
 
-  // โหลดข้อมูลเมื่อเปิดหน้า
-  loadAlumni();
-</script>
+    // แก้ไข
+    function editAlumni(id) {
+      fetch('api/alumni.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('alumniId').value = item.id;
+          document.getElementById('nickname').value = item.nickname;
+          document.getElementById('firstName').value = item.first_name;
+          document.getElementById('lastName').value = item.last_name;
+          document.getElementById('jobTitle').value = item.job_title;
+          document.getElementById('company').value = item.company;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
+    // ลบ
+    function deleteAlumni(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/alumni.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(() => loadAlumni());
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('alumniForm').reset();
+      document.getElementById('alumniId').value = '';
+    }
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadAlumni();
+  </script>
 </body>
-</html>
+</html>  
