@@ -4,8 +4,8 @@ header('Content-Type: application/json');
 $conn = getConnection();
 
 function handleUpload($file) {
-    $targetDir = "../uploads/";
-    if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+    $targetDir = dirname(__DIR__) . "/uploads/"; // absolute path for Railway
+    if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $filename = uniqid('activity_', true) . '.' . $ext;
     $targetFile = $targetDir . $filename;
@@ -36,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        if ($img && file_exists("../".$img)) unlink("../".$img);
+        $abs = dirname(__DIR__) . '/' . $img;
+        if ($img && file_exists($abs)) unlink($abs);
         $stmt = $conn->prepare("DELETE FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         echo json_encode(['success' => true]);
@@ -59,7 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            if ($old_img && file_exists("../".$old_img)) unlink("../".$old_img);
+            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+            if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE department_activities SET activity_name=?, activity_image_url=? WHERE id=?");
         $stmt->execute([$_POST['activity_name'], $activity_image_url, $_POST['id']]);
