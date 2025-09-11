@@ -36,7 +36,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">ชื่อตำแหน่งงาน</th>
             <th class="py-2">เงินเดือนเริ่มต้น</th>
             <th class="py-2">จุดเด่น/รายละเอียด</th>
@@ -60,7 +59,6 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">${item.job_title}</td>
                 <td class="py-2">${item.starting_salary}</td>
                 <td class="py-2 text-left whitespace-pre-line">${item.highlight}</td>

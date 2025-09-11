@@ -32,7 +32,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">รายละเอียดค่าเทอม</th>
             <th class="py-2">ค่าใช้จ่ายอื่น ๆ</th>
             <th class="py-2">การจัดการ</th>
@@ -55,7 +54,6 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2 text-left whitespace-pre-line">${item.description}</td>
                 <td class="py-2 text-left whitespace-pre-line">${item.other_expenses}</td>
                 <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">

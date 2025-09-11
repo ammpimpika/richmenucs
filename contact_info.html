@@ -36,7 +36,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">เบอร์โทรศัพท์</th>
             <th class="py-2">Facebook Page</th>
             <th class="py-2">Website</th>
@@ -60,7 +59,6 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">${item.phone_number}</td>
                 <td class="py-2">${item.facebook_page ? `<a href="${item.facebook_page}" target="_blank" class="text-blue-500 underline">${item.facebook_page}</a>` : '-'}</td>
                 <td class="py-2">${item.website ? `<a href="${item.website}" target="_blank" class="text-blue-500 underline">${item.website}</a>` : '-'}</td>

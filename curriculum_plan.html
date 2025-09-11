@@ -48,7 +48,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">ชั้นปี</th>
             <th class="py-2">ภาคการศึกษา</th>
             <th class="py-2">รูปภาพแผนการเรียน</th>
@@ -72,11 +71,10 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">ปี ${item.year_level}</td>
                 <td class="py-2">${item.semester == 3 ? 'ฤดูร้อน' : item.semester}</td>
-               <td class="py-2 border">
-              ${item.image_url ? (() => { const f = String(item.image_url).replace(/^uploads\//,''); return `<img src=\"api/show_image.php?file=${f}\" alt=\"curriculum_plan\" class=\"mx-auto w-16 h-16 object-cover rounded-full mb-2\">`; })() : ''}
+               <td class="py-2">
+              ${item.image_url ? (() => { const f = String(item.image_url).replace(/^uploads\//,''); return `<img src=\"api/show_image.php?file=${f}\" alt=\"curriculum_plan\" class=\"mx-auto h-40 w-auto object-contain\">`; })() : ''}
               </td>
                 <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
                   <button onclick="editCurriculum(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
