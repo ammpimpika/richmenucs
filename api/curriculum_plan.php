@@ -1,6 +1,12 @@
 <?php
 require_once '../config/database.php';
 header('Content-Type: application/json');
+
+// Ensure uploads work on Railway (set writable tmp and sane limits)
+@ini_set('upload_tmp_dir', sys_get_temp_dir());
+@ini_set('post_max_size', '12M');
+@ini_set('upload_max_filesize', '12M');
+
 $conn = getConnection();
 
 // ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum
@@ -16,6 +22,7 @@ function handleCurriculumUpload($file) {
     $targetFile = $targetDir . $filename;
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+        @chmod($targetFile, 0666);
         return 'uploads/' . $filename;
     }
     return null;

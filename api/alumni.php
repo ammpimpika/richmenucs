@@ -1,6 +1,9 @@
 <?php
 require_once '../config/database.php';
 header('Content-Type: application/json');
+@ini_set('upload_tmp_dir', sys_get_temp_dir());
+@ini_set('post_max_size', '12M');
+@ini_set('upload_max_filesize', '12M');
 $conn = getConnection();
 
 function uploadErrorMessage($code) {
@@ -55,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'ย้ายไฟล์ไม่สำเร็จ']);
             exit;
         }
+        @chmod($targetPath, 0666);
     } elseif (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => uploadErrorMessage($_FILES['image']['error'])]);
