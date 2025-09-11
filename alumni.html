@@ -48,7 +48,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">ชื่อเล่น</th>
             <th class="py-2">ชื่อจริง</th>
             <th class="py-2">นามสกุล</th>
@@ -75,19 +74,19 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">${item.nickname}</td>
                 <td class="py-2">${item.first_name}</td>
                 <td class="py-2">${item.last_name}</td>
                 <td class="py-2">${item.job_title || '-'}</td>
                 <td class="py-2">${item.company || '-'}</td>
-              <td class="py-2 border">
-              ${item.image? `<img src="api/show_image.php?file=${item.image}" alt="alumni" class="mx-auto w-16 h-16 object-cover rounded-full mb-2">` : ''}
+                <td class="py-2">
+                  ${item.image ? (() => { const f = String(item.image).replace(/^uploads\//,''); return `<img src=\"api/show_image.php?file=${f}\" alt=\"alumni\" class=\"mx-auto w-16 h-16 object-cover rounded-full mb-2\">`; })() : ''}
                 </td>
-                  <div class="flex flex-col gap-2 md:flex-row md:justify-center">
+                <td class="py-2">
+                  <div class="flex flex-col gap-2 items-center">
                     <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
                     <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
-                  </div> 
+                  </div>
                 </td>
               </tr>
             `;

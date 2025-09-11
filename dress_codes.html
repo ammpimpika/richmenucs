@@ -65,7 +65,7 @@
                 <td class="py-2">${item.occasion}</td>
                 <td class="py-2 text-left whitespace-pre-line">${item.description}</td>
                <td class="py-2 border">
-  ${item.image? `<img src="api/show_image.php?file=${item.image}" alt="dress_codes" class="mx-auto w-16 h-16 object-cover rounded-full mb-2">` : ''}
+  ${item.image_url ? (() => { const f = String(item.image_url).replace(/^uploads\//,''); return `<img src=\"api/show_image.php?file=${f}\" alt=\"dress_codes\" class=\"mx-auto w-16 h-16 object-cover rounded-full mb-2\">`; })() : ''}
               </td>
                 <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
                   <button onclick="editDress(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
