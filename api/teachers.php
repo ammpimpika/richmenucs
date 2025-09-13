@@ -19,7 +19,7 @@ function uploadErrorMessage($code) {
     return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
 }
 function handleUpload($file) {
-    $targetDir = dirname(__DIR__) . "/uploads/"; // use absolute path for Railway
+    $targetDir = __DIR__ . '/../public/uploads/'; // use absolute path for Railway
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $filename = uniqid('teacher_', true) . '.' . $ext;

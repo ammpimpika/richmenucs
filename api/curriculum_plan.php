@@ -11,7 +11,7 @@ $conn = getConnection();
 
 // ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum
 function handleCurriculumUpload($file) {
-    $targetDir = dirname(__DIR__) . "/uploads/";
+    $targetDir = __DIR__ . '/../public/uploads/';
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));

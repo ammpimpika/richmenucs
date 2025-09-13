@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
-        $targetDir = dirname(__DIR__) . '/uploads/';
+        $targetDir = __DIR__ . '/../public/uploads/';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
