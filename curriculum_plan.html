@@ -48,7 +48,6 @@
       <table class="min-w-full text-center">
         <thead>
           <tr class="bg-gray-200">
-            <th class="py-2">ID</th>
             <th class="py-2">ชั้นปี</th>
             <th class="py-2">ภาคการศึกษา</th>
             <th class="py-2">รูปภาพแผนการเรียน</th>
@@ -72,7 +71,6 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">ปี ${item.year_level}</td>
                 <td class="py-2">${item.semester == 3 ? 'ฤดูร้อน' : item.semester}</td>
                 <td class="py-2">
