@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $abs = dirname(__DIR__) . '/' . $img;
+         $abs = dirname(__DIR__) . '/public/' . $img; // __DIR__ = api/
         if ($img && file_exists($abs)) unlink($abs);
         $stmt = $conn->prepare("DELETE FROM department_activities WHERE id=?");
         $stmt->execute([$_POST['id']]);
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT activity_image_url FROM department_activities WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+            $oldAbs = dirname(__DIR__) . '/public/' . $old_img; // 
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE department_activities SET activity_name=?, activity_image_url=? WHERE id=?");
