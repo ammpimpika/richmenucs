@@ -39,7 +39,7 @@
           const year = yearMap[item.year_level] || `ปี ${item.year_level}`;
           const sem = semMap[item.semester] || `เทอม ${item.semester}`;
           const title = `${year} ${sem}`;
-          const img = item.image_url ? `<img src="${item.image_url}" alt="${title}" class="rounded shadow cursor-pointer hover:scale-105 transition w-full max-w-lg object-contain" onclick="showModal('${item.image_url}', '${title}')">` : '<div class="bg-gray-200 h-40 flex items-center justify-center rounded w-full">ไม่มีรูป</div>';
+         const img = item.image_url? `<img src="api/uploads.php?file=${item.image_url.split('/').pop()}" alt="${title}" class="rounded shadow cursor-pointer hover:scale-105 transition w-full max-w-lg object-contain" onclick="showModal('api/uploads.php?file=${item.image_url.split('/').pop()}', '${title}')">`: '<div class="bg-gray-200 h-40 flex items-center justify-center rounded w-full">ไม่มีรูป</div>';
           list.innerHTML += `
             <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
               <div class="font-semibold mb-2 text-center">${title}</div>
@@ -51,11 +51,12 @@
 
     // Modal functions
     function showModal(imgUrl, title) {
-      document.getElementById('modalImg').src = imgUrl;
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modal').classList.remove('hidden');
-      document.getElementById('modal').classList.add('flex');
-    }
+  document.getElementById('modalImg').src = imgUrl; // จะได้โหลดจาก uploads.php
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modal').classList.add('flex');
+}
+
     function closeModal() {
       document.getElementById('modal').classList.add('hidden');
       document.getElementById('modal').classList.remove('flex');
