@@ -9,7 +9,6 @@
 <body class="bg-gray-100 min-h-screen">
   <div class="max-w-4xl mx-auto py-10">
     <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลศิษย์เก่า</h1>
-    <!-- ฟอร์มเพิ่ม/แก้ไข -->
     <div class="bg-white rounded shadow p-6 mb-6">
       <form id="alumniForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0" enctype="multipart/form-data">
         <input type="hidden" id="alumniId" name="id">
@@ -43,7 +42,6 @@
         </div>
       </form>
     </div>
-    <!-- Data Table -->
     <div class="bg-white rounded shadow p-4 overflow-x-auto">
       <table class="min-w-full text-center">
         <thead>
@@ -58,8 +56,7 @@
           </tr>
         </thead>
         <tbody id="alumniTable">
-          <!-- Data will be loaded here -->
-        </tbody>
+          </tbody>
       </table>
     </div>
   </div>
@@ -74,7 +71,6 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
-                <td class="py-2">${item.id}</td>
                 <td class="py-2">${item.nickname}</td>
                 <td class="py-2">${item.first_name}</td>
                 <td class="py-2">${item.last_name}</td>
@@ -148,4 +144,4 @@
     loadAlumni();
   </script>
 </body>
-</html> 
+</html>
