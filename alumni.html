@@ -76,14 +76,15 @@
                 <td class="py-2">${item.last_name}</td>
                 <td class="py-2">${item.job_title || '-'}</td>
                 <td class="py-2">${item.company || '-'}</td>
+          <td class="py-2">
+        ${item.image ? `<img src="api/uploads.php?file=${item.image}" class="mx-auto w-12 h-12 object-cover rounded-full">` : ''}
+          </td>
             <td class="py-2">
-          ${item.image_url ? `<<img src="api/uploads.php?file=${item.image}" class="mx-auto w-12 h-12 object-cover rounded-full mb-2">` : ''}
-            </td>
-
-                    <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
-                    <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
-                  </div>
-                </td>
+            <div class="flex gap-2 justify-center">
+            <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+            <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+          </div>
+          </td>
               </tr>
             `;
           });

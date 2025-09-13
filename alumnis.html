@@ -72,10 +72,11 @@
 
     let alumniData = [];
 
-    function getImageUrl(item) {
-      if (item && item.image) return uploadsBase + item.image;
-      return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(`${item.first_name||''} ${item.last_name||''}`.trim()) + '&background=6366f1&color=fff&size=256';
-    }
+   function getImageUrl(item) {
+  if (item && item.image) return `api/uploads.php?file=${item.image}`;
+  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(`${item.first_name||''} ${item.last_name||''}`.trim()) + '&background=6366f1&color=fff&size=256';
+}
+
 
     function renderCards(list) {
       gridEl.innerHTML = '';

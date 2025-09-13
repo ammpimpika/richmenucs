@@ -72,7 +72,7 @@
           list.innerHTML += `
             <div class="bg-white border border-slate-200 rounded-xl shadow p-6 flex flex-col items-center">
               <div class="w-28 h-28 sm:w-32 sm:h-32 mb-4 flex items-center justify-center overflow-hidden rounded-full bg-slate-200">
-                ${item.image_url ? `<img src="${item.image_url}" alt="${item.full_name}" class="object-cover w-full h-full">` : '<span class="text-slate-400">ไม่มีรูป</span>'}
+                ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url.split('/').pop()}" alt="${item.full_name}" class="object-cover w-full h-full">` : '<span class="text-slate-400">ไม่มีรูป</span>'}
               </div>
               <div class="font-semibold text-lg text-center text-slate-700">${item.full_name}</div>
             </div>
