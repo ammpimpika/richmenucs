@@ -23,6 +23,7 @@ function handleCurriculumUpload($file) {
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
+        // เก็บแค่ uploads/... ไว้ใน DB
         return 'uploads/' . $filename;
     }
     return null;
@@ -49,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $abs = dirname(__DIR__) . '/' . $img;
+
+        $abs = dirname(__DIR__) . '/public/' . $img; // ✅ ชี้ไป public/uploads
         if ($img && file_exists($abs)) unlink($abs);
 
         $stmt = $conn->prepare("DELETE FROM curriculum_plan WHERE id=?");
@@ -75,7 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+
+            $oldAbs = dirname(__DIR__) . '/public/' . $old_img; // 
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE curriculum_plan SET year_level=?, semester=?, image_url=? WHERE id=?");
@@ -88,4 +91,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['success' => true]);
     exit;
 }
-?> 
+?>
