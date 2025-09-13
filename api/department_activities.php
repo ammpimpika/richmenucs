@@ -26,7 +26,7 @@ function handleUpload($file) {
     $targetFile = $targetDir . $filename;
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
-        return 'uploads/' . $filename;
+        return '/uploads/' . $filename;
     }
     return null;
 }

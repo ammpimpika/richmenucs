@@ -24,7 +24,7 @@ function handleCurriculumUpload($file) {
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
         // เก็บแค่ uploads/... ไว้ใน DB
-        return 'uploads/' . $filename;
+        return '/uploads/' . $filename;
     }
     return null;
 }
