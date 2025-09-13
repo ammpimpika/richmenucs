@@ -74,16 +74,15 @@
           data.forEach(item => {
             table.innerHTML += `
               <tr>
+                <td class="py-2">${item.id}</td>
                 <td class="py-2">${item.nickname}</td>
                 <td class="py-2">${item.first_name}</td>
                 <td class="py-2">${item.last_name}</td>
                 <td class="py-2">${item.job_title || '-'}</td>
                 <td class="py-2">${item.company || '-'}</td>
                 <td class="py-2">
-                  ${item.image ? `<img src="uploads/${String(item.image).replace(/^uploads\//,'')}" alt="alumni" class="mx-auto max-h-40 w-auto object-contain">` : ''}
-                </td>
-                <td class="py-2">
-                  <div class="flex flex-col gap-2 items-center">
+                  ${item.image ? `<img src="uploads/${item.image}" alt="alumni" class="mx-auto w-12 h-12 object-cover rounded-full mb-2">` : ''}
+                  <div class="flex flex-col gap-2 md:flex-row md:justify-center">
                     <button onclick="editAlumni(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
                     <button onclick="deleteAlumni(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
                   </div>
@@ -95,7 +94,7 @@
     }
 
     // ฟอร์มเพิ่ม/แก้ไขข้อมูล
-   document.getElementById('alumniForm').onsubmit = function(e) {
+    document.getElementById('alumniForm').onsubmit = function(e) {
       e.preventDefault();
       const form = document.getElementById('alumniForm');
       const formData = new FormData(form);
@@ -149,4 +148,4 @@
     loadAlumni();
   </script>
 </body>
-</html>  
+</html> 
