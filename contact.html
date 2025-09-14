@@ -50,8 +50,22 @@
   <script>
     fetch("counter.php?page=contact")
       .then(res => res.json())
-      .then(data => document.getElementById("count").textContent = data.visits)
-      .catch(err => console.error(err));
+      .then(data => {
+        console.log('Counter data:', data);
+        const countElement = document.getElementById("count");
+        if (countElement && data.visits !== undefined) {
+          countElement.textContent = data.visits;
+        } else {
+          console.log('Count element not found or visits undefined');
+        }
+      })
+      .catch(err => {
+        console.error('Counter error:', err);
+        const countElement = document.getElementById("count");
+        if (countElement) {
+          countElement.textContent = "0";
+        }
+      });
   </script>
 </body>
 </html>
