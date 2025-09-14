@@ -24,7 +24,7 @@
           html += `
     <div class="bg-white border border-slate-200 rounded-xl shadow p-5 flex flex-col items-center">
       <div class="font-bold text-indigo-700 text-lg mb-2">${item.occasion || ''}</div>
-      ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url.split('/').pop()}" alt="รูปแบบเครื่องแต่งกาย" class="w-full max-w-md h-60 md:h-72 object-cover rounded mb-4 shadow-md">` : '<div class="bg-gray-200 w-full h-60 md:h-72 rounded flex items-center justify-center text-gray-500">ไม่มีรูป</div>'}
+      ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url}" alt="รูปแบบเครื่องแต่งกาย" class="w-full max-w-md h-60 md:h-72 object-cover rounded mb-4 shadow-md">` : '<div class="bg-gray-200 w-full h-60 md:h-72 rounded flex items-center justify-center text-gray-500">ไม่มีรูป</div>'}
       <div class="text-slate-700 text-center whitespace-pre-line text-sm md:text-base">${item.description || ''}</div>
     </div>
   `;
