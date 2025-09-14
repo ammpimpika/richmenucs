@@ -2,14 +2,9 @@
 require_once '../config/database.php';
 header('Content-Type: application/json');
 
-// Ensure uploads work on Railway (set writable tmp and sane limits)
-@ini_set('upload_tmp_dir', sys_get_temp_dir());
-@ini_set('post_max_size', '12M');
-@ini_set('upload_max_filesize', '12M');
-
 $conn = getConnection();
 
-// ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum
+// ฟังก์ชันอัปโหลดไฟล์
 function handleCurriculumUpload($file) {
     $targetDir = __DIR__ . '/../public/uploads/';
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
@@ -23,13 +18,12 @@ function handleCurriculumUpload($file) {
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
-        // เก็บแค่ uploads/... ไว้ใน DB
-        return '/uploads/' . $filename;
+        return '/uploads/' . $filename; // เก็บ path สำหรับเว็บหน้าบ้าน
     }
     return null;
 }
 
-// ================= GET =================
+// ===== GET =====
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
         $stmt = $conn->prepare("SELECT * FROM curriculum_plan WHERE id=?");
@@ -42,45 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
-// ================= POST =================
+// ===== POST =====
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    // ลบข้อมูล
-    if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-        $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
-        $stmt->execute([$_POST['id']]);
-        $img = $stmt->fetchColumn();
-
-        $abs = dirname(__DIR__) . '/public/' . $img; // ✅ ชี้ไป public/uploads
-        if ($img && file_exists($abs)) unlink($abs);
-
-        $stmt = $conn->prepare("DELETE FROM curriculum_plan WHERE id=?");
-        $stmt->execute([$_POST['id']]);
-        echo json_encode(['success' => true]);
-        exit;
-    }
-
-    // จัดการไฟล์ภาพ
+    $image_file = $_FILES['image_file'] ?? null;
     $image_url = null;
-    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
-        $image_url = handleCurriculumUpload($_FILES['image_file']);
-    } else if (!empty($_POST['id'])) {
-        // ใช้ของเดิมถ้าแก้ไขแต่ไม่ได้อัปโหลดใหม่
+
+    if ($image_file && $image_file['error'] === 0) {
+        $image_url = handleCurriculumUpload($image_file);
+    } elseif (!empty($_POST['id'])) {
+        // ใช้ของเดิมถ้าแก้ไขแต่ไม่อัปโหลดใหม่
         $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $image_url = $stmt->fetchColumn();
     }
 
     if (!empty($_POST['id'])) {
-        // ลบไฟล์เดิมถ้ามีการอัปโหลดใหม่
-        if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
-            $stmt = $conn->prepare("SELECT image_url FROM curriculum_plan WHERE id=?");
-            $stmt->execute([$_POST['id']]);
-            $old_img = $stmt->fetchColumn();
-
-            $oldAbs = dirname(__DIR__) . '/public/' . $old_img; // 
-            if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
-        }
         $stmt = $conn->prepare("UPDATE curriculum_plan SET year_level=?, semester=?, image_url=? WHERE id=?");
         $stmt->execute([$_POST['year_level'], $_POST['semester'], $image_url, $_POST['id']]);
     } else {
