@@ -29,11 +29,23 @@ function handleUpload($file) {
     
     $filename = 'dress_' . uniqid() . '.' . $ext;
     $targetFile = $targetDir . $filename;
+    
+    // ลองอัพโหลดไปยัง temp directory ก่อน
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
-        // เก็บแค่ filename ไว้ใน DB สำหรับ Railway
         return $filename;
     }
+    
+    // ถ้าไม่สำเร็จ ให้ลองอัพโหลดไปยัง public/uploads (สำหรับ local development)
+    $publicDir = __DIR__ . '/../public/uploads/';
+    if (!is_dir($publicDir)) @mkdir($publicDir, 0777, true);
+    $publicFile = $publicDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $publicFile)) {
+        @chmod($publicFile, 0666);
+        return $filename;
+    }
+    
     return null;
 }
 
@@ -58,8 +70,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT image_url FROM dress_codes WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $absPath = sys_get_temp_dir() . '/uploads/' . $img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
-        if ($img && file_exists($absPath)) unlink($absPath);
+        if ($img) {
+            // ลบจาก temp directory (Railway)
+            $tempPath = sys_get_temp_dir() . '/uploads/' . $img;
+            if (file_exists($tempPath)) unlink($tempPath);
+            
+            // ลบจาก public directory (local development)
+            $publicPath = __DIR__ . '/../public/uploads/' . $img;
+            if (file_exists($publicPath)) unlink($publicPath);
+        }
         $stmt = $conn->prepare("DELETE FROM dress_codes WHERE id=?");
         $stmt->execute([$_POST['id']]);
         echo json_encode(['success' => true]);
@@ -91,8 +110,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT image_url FROM dress_codes WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = sys_get_temp_dir() . '/uploads/' . $old_img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
-            if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
+            if ($old_img) {
+                // ลบจาก temp directory (Railway)
+                $tempPath = sys_get_temp_dir() . '/uploads/' . $old_img;
+                if (file_exists($tempPath)) unlink($tempPath);
+                
+                // ลบจาก public directory (local development)
+                $publicPath = __DIR__ . '/../public/uploads/' . $old_img;
+                if (file_exists($publicPath)) unlink($publicPath);
+            }
         }
         $stmt = $conn->prepare("UPDATE dress_codes SET occasion=?, description=?, image_url=? WHERE id=?");
         $stmt->execute([$_POST['occasion'], $_POST['description'], $image_url, $_POST['id']]);
