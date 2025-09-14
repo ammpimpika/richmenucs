@@ -19,31 +19,35 @@ function uploadErrorMessage($code) {
     return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
 }
 function handleUpload($file) {
-    // ใช้ temporary directory สำหรับ Railway
-    $targetDir = sys_get_temp_dir() . '/uploads/';
-    if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
-    
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $allowedExt = ['jpg','jpeg','png','gif','webp'];
     if (!in_array($ext, $allowedExt)) return null;
     
     $filename = 'dress_' . uniqid() . '.' . $ext;
-    $targetFile = $targetDir . $filename;
     
-    // ลองอัพโหลดไปยัง temp directory ก่อน
-    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        @chmod($targetFile, 0666);
-        return $filename;
-    }
+    // ลองอัพโหลดไปยังหลายตำแหน่ง
+    $uploadPaths = [
+        // 1. Temp directory (Railway)
+        sys_get_temp_dir() . '/uploads/',
+        // 2. Public uploads (local development)
+        __DIR__ . '/../public/uploads/',
+        // 3. Root uploads (Railway fallback)
+        __DIR__ . '/../uploads/',
+        // 4. Current directory (Railway fallback)
+        __DIR__ . '/'
+    ];
     
-    // ถ้าไม่สำเร็จ ให้ลองอัพโหลดไปยัง public/uploads (สำหรับ local development)
-    $publicDir = __DIR__ . '/../public/uploads/';
-    if (!is_dir($publicDir)) @mkdir($publicDir, 0777, true);
-    $publicFile = $publicDir . $filename;
-    
-    if (move_uploaded_file($file['tmp_name'], $publicFile)) {
-        @chmod($publicFile, 0666);
-        return $filename;
+    foreach ($uploadPaths as $targetDir) {
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
+        
+        $targetFile = $targetDir . $filename;
+        
+        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            @chmod($targetFile, 0666);
+            return $filename;
+        }
     }
     
     return null;
