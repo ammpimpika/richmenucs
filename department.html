@@ -87,23 +87,9 @@
   </div>
   <script>
     fetch("counter.php?page=department")
-      .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then(data => {
-        const countElement = document.getElementById("count");
-        if (countElement) {
-          countElement.textContent = data.visits || 0;
-        }
-      })
-      .catch(err => {
-        console.error('Counter error:', err);
-        const countElement = document.getElementById("count");
-        if (countElement) {
-          countElement.textContent = "0";
-        }
-      });
+      .then(res => res.json())
+      .then(data => document.getElementById("count").textContent = data.visits)
+      .catch(err => console.error(err));
   </script>
 </body>
 </html>
