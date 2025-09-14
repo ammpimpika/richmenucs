@@ -36,6 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ลบข้อมูล
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+        // ลบไฟล์ภาพเดิม
+        $stmt = $conn->prepare("SELECT image FROM alumni WHERE id=?");
+        $stmt->execute([$_POST['id']]);
+        $img = $stmt->fetchColumn();
+        $abs = sys_get_temp_dir() . '/uploads/' . $img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
+        if ($img && file_exists($abs)) unlink($abs);
+        
         $stmt = $conn->prepare("DELETE FROM alumni WHERE id=?");
         $stmt->execute([$_POST['id']]);
         echo json_encode(['success' => true]);
@@ -45,9 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // เตรียมตัวแปรสำหรับชื่อไฟล์ภาพ และรับมือกับสภาพแวดล้อมโฮสต์ (เช่น Railway)
     $imageName = null;
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt = ['jpg','jpeg','png','gif','webp'];
+        if (!in_array($ext, $allowedExt)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ประเภทไฟล์ไม่ถูกต้อง']);
+            exit;
+        }
+        
         $imageName = 'alumni_' . uniqid() . '.' . $ext;
-        $targetDir = __DIR__ . '/../public/uploads/';
+        // ใช้ temporary directory สำหรับ Railway
+        $targetDir = sys_get_temp_dir() . '/uploads/';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0777, true);
         }
@@ -66,8 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($_POST['id'])) {
-        // กรณีแก้ไข ถ้ามีอัปโหลดรูปใหม่ ให้ update image ด้วย
+        // ลบไฟล์ภาพเดิมถ้ามีการอัปโหลดใหม่
         if ($imageName) {
+            $stmt = $conn->prepare("SELECT image FROM alumni WHERE id=?");
+            $stmt->execute([$_POST['id']]);
+            $old_img = $stmt->fetchColumn();
+            $oldAbs = sys_get_temp_dir() . '/uploads/' . $old_img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
+            if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
+            
             $stmt = $conn->prepare("UPDATE alumni SET nickname=?, first_name=?, last_name=?, job_title=?, company=?, image=? WHERE id=?");
             $stmt->execute([
                 $_POST['nickname'],

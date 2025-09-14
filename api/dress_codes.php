@@ -19,14 +19,20 @@ function uploadErrorMessage($code) {
     return $map[$code] ?? 'อัปโหลดไฟล์ล้มเหลว';
 }
 function handleUpload($file) {
-    $targetDir = __DIR__ . '/../public/uploads/'; // absolute path for environments like Railway
+    // ใช้ temporary directory สำหรับ Railway
+    $targetDir = sys_get_temp_dir() . '/uploads/';
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
+    
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $filename = uniqid('dress_', true) . '.' . $ext;
+    $allowedExt = ['jpg','jpeg','png','gif','webp'];
+    if (!in_array($ext, $allowedExt)) return null;
+    
+    $filename = 'dress_' . uniqid() . '.' . $ext;
     $targetFile = $targetDir . $filename;
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
-        return '/uploads/' . $filename; // public relative URL remains the same
+        // เก็บแค่ filename ไว้ใน DB สำหรับ Railway
+        return $filename;
     }
     return null;
 }
@@ -52,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("SELECT image_url FROM dress_codes WHERE id=?");
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
-        $absPath = dirname(__DIR__) . '/' . $img;
+        $absPath = sys_get_temp_dir() . '/uploads/' . $img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
         if ($img && file_exists($absPath)) unlink($absPath);
         $stmt = $conn->prepare("DELETE FROM dress_codes WHERE id=?");
         $stmt->execute([$_POST['id']]);
@@ -85,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT image_url FROM dress_codes WHERE id=?");
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
-            $oldAbs = dirname(__DIR__) . '/' . $old_img;
+            $oldAbs = sys_get_temp_dir() . '/uploads/' . $old_img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE dress_codes SET occasion=?, description=?, image_url=? WHERE id=?");
