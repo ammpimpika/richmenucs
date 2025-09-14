@@ -12,18 +12,18 @@ try {
   
 
     // ตรวจสอบว่ามีข้อมูลของวันนี้แล้วหรือยัง
-    $stmt = $conn->prepare("SELECT count FROM visitors WHERE page_name = ? AND visit_date = ?");
+    $stmt = $conn->prepare("SELECT `count` FROM visitors WHERE page_name = ? AND visit_date = ?");
     $stmt->execute([$page, $today]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existing) {
         // อัพเดทจำนวนผู้เข้าชม
-        $stmt = $conn->prepare("UPDATE visitors SET count = count + 1 WHERE page_name = ? AND visit_date = ?");
+        $stmt = $conn->prepare("UPDATE visitors SET `count` = `count` + 1 WHERE page_name = ? AND visit_date = ?");
         $stmt->execute([$page, $today]);
         $countToday = $existing['count'] + 1;
     } else {
         // เพิ่มข้อมูลใหม่
-        $stmt = $conn->prepare("INSERT INTO visitors (page_name, visit_date, count) VALUES (?, ?, 1)");
+        $stmt = $conn->prepare("INSERT INTO visitors (page_name, visit_date, `count`) VALUES (?, ?, 1)");
         $stmt->execute([$page, $today]);
         $countToday = 1;
     }
