@@ -9,17 +9,10 @@
     .modal-bg { background: rgba(0,0,0,0.7); }
   </style>
 </head>
-<body class="bg-gray-800 min-h-screen flex flex-col">
-
-  <!-- เนื้อหา -->
-  <div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8 flex-grow">
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
     <h1 class="text-2xl font-bold text-center mb-8 text-white">แผนการเรียนภาควิชาวิทยาการคอมพิวเตอร์</h1>
     <div id="curriculumList" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
-  </div>
-
-  <!-- Counter -->
-  <div class="py-6 bg-gray-900 text-center text-white text-sm">
-    👁 ผู้เข้าชม <span id="count">0</span> คน
   </div>
 
   <!-- Modal -->
@@ -36,23 +29,17 @@
     fetch('api/curriculum_plan.php')
       .then(res => res.json())
       .then(data => {
+        // จัดกลุ่มตามปีและเทอม
         const yearMap = {1: 'ปี 1', 2: 'ปี 2', 3: 'ปี 3', 4: 'ปี 4'};
         const semMap = {1: 'เทอม 1', 2: 'เทอม 2', 3: 'ฤดูร้อน'};
+        // เรียงข้อมูล
         data.sort((a, b) => a.year_level - b.year_level || a.semester - b.semester);
-
         const list = document.getElementById('curriculumList');
-        list.innerHTML = '';
-
         data.forEach(item => {
           const year = yearMap[item.year_level] || `ปี ${item.year_level}`;
           const sem = semMap[item.semester] || `เทอม ${item.semester}`;
           const title = `${year} ${sem}`;
-          const img = item.image_url
-            ? `<img src="${item.image_url}" alt="${title}" 
-                   class="rounded shadow cursor-pointer hover:scale-105 transition w-full max-w-lg object-contain"
-                   onclick="showModal('${item.image_url}', '${title}')">`
-            : '<div class="bg-gray-200 h-40 flex items-center justify-center rounded w-full">ไม่มีรูป</div>';
-
+         const img = item.image_url? `<img src="api/uploads.php?file=${item.image_url.split('/').pop()}" alt="${title}" class="rounded shadow cursor-pointer hover:scale-105 transition w-full max-w-lg object-contain" onclick="showModal('api/uploads.php?file=${item.image_url.split('/').pop()}', '${title}')">`: '<div class="bg-gray-200 h-40 flex items-center justify-center rounded w-full">ไม่มีรูป</div>';
           list.innerHTML += `
             <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
               <div class="font-semibold mb-2 text-center">${title}</div>
@@ -64,11 +51,11 @@
 
     // Modal functions
     function showModal(imgUrl, title) {
-      document.getElementById('modalImg').src = imgUrl;
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modal').classList.remove('hidden');
-      document.getElementById('modal').classList.add('flex');
-    }
+  document.getElementById('modalImg').src = imgUrl; // จะได้โหลดจาก uploads.php
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modal').classList.add('flex');
+}
 
     function closeModal() {
       document.getElementById('modal').classList.add('hidden');
@@ -76,16 +63,50 @@
       document.getElementById('modalImg').src = '';
       document.getElementById('modalTitle').textContent = '';
     }
-
+    // ปิด modal เมื่อคลิกพื้นหลัง
     document.getElementById('modal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
-
-    // Counter
-    fetch("counter.php?page=curriculum")
-      .then(res => res.json())
-      .then(data => document.getElementById("count").textContent = data.visits)
-      .catch(err => console.error(err));
   </script>
 </body>
-</html>
+</html> 
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      background-color: #1a1a1a;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .counter-text {
+      margin-bottom: 40px;
+      font-size: 1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div style="margin:20px 0; text-align:center; font-size:16px; color:#FFFFFF;">
+    <span class="text-white">👁 ผู้เข้าชม </span><span id="count" class="text-white">0</span><span class="text-white"> คน</span>
+</div>
+<script>
+  fetch("counter.php?page=curriculum")
+    .then(res => res.json())
+    .then(data => document.getElementById("count").textContent = data.visits)
+    .catch(err => console.error(err));
+</script>
+
+
