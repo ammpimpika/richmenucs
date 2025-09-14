@@ -74,7 +74,7 @@
                 <td class="py-2">ปี ${item.year_level}</td>
                 <td class="py-2">${item.semester == 3 ? 'ฤดูร้อน' : item.semester}</td>
                <td class="py-2">
-              ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url.split('/').pop()}" class="h-16 mx-auto rounded shadow">` : '-'}
+              ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url}" class="h-16 mx-auto rounded shadow">` : '-'}
               </td>
 
                 <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
@@ -124,7 +124,7 @@
           document.getElementById('yearLevel').value = item.year_level;
           document.getElementById('semester').value = item.semester;
           document.getElementById('imageFile').value = '';
-          document.getElementById('preview').innerHTML = item.image_url ? `<img src="${item.image_url}" class="max-h-32 mt-2 rounded shadow">` : '';
+          document.getElementById('preview').innerHTML = item.image_url ? `<img src="api/uploads.php?file=${item.image_url}" class="max-h-32 mt-2 rounded shadow">` : '';
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }

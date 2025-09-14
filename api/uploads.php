@@ -1,6 +1,16 @@
 <?php
 // api/uploads.php?file=curriculum_6853c214504119.73991168.png
-$file = __DIR__ . '/../public/uploads/' . basename($_GET['file']);
+// รองรับทั้ง local development และ Railway deployment
+$filename = basename($_GET['file']);
+
+// ลองหาไฟล์ใน temporary directory ก่อน (สำหรับ Railway)
+$file = sys_get_temp_dir() . '/uploads/' . $filename;
+
+// ถ้าไม่เจอใน temp directory ให้ลองหาใน public/uploads (สำหรับ local development)
+if (!file_exists($file)) {
+    $file = __DIR__ . '/../public/uploads/' . $filename;
+}
+
 if (file_exists($file)) {
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     $mime = match($ext) {

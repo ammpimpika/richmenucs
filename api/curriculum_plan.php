@@ -9,9 +9,10 @@ header('Content-Type: application/json');
 
 $conn = getConnection();
 
-// ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum
+// ฟังก์ชันจัดการอัปโหลดไฟล์ curriculum (รองรับ Railway)
 function handleCurriculumUpload($file) {
-    $targetDir = __DIR__ . '/../public/uploads/';
+    // ใช้ temporary directory สำหรับ Railway
+    $targetDir = sys_get_temp_dir() . '/uploads/';
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -23,8 +24,8 @@ function handleCurriculumUpload($file) {
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         @chmod($targetFile, 0666);
-        // เก็บแค่ uploads/... ไว้ใน DB
-        return '/uploads/' . $filename;
+        // เก็บแค่ filename ไว้ใน DB สำหรับ Railway
+        return $filename;
     }
     return null;
 }
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$_POST['id']]);
         $img = $stmt->fetchColumn();
 
-        $abs = dirname(__DIR__) . '/public/' . $img; // ✅ ชี้ไป public/uploads
+        $abs = sys_get_temp_dir() . '/uploads/' . $img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
         if ($img && file_exists($abs)) unlink($abs);
 
         $stmt = $conn->prepare("DELETE FROM curriculum_plan WHERE id=?");
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$_POST['id']]);
             $old_img = $stmt->fetchColumn();
 
-            $oldAbs = dirname(__DIR__) . '/public/' . $old_img; // 
+            $oldAbs = sys_get_temp_dir() . '/uploads/' . $old_img; // ✅ ชี้ไป temp/uploads สำหรับ Railway
             if ($old_img && file_exists($oldAbs)) unlink($oldAbs);
         }
         $stmt = $conn->prepare("UPDATE curriculum_plan SET year_level=?, semester=?, image_url=? WHERE id=?");
