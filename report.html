@@ -134,6 +134,18 @@ const API_KEY = 'AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ';
 let chartInstance;
 let visitorChartInstance;
 
+// ฟังก์ชันสำหรับลบ emoji และตัวอักษรพิเศษ
+function cleanTextForPDF(text) {
+  return text
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // ลบ emoji
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // ลบ symbols
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // ลบ transport symbols
+    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // ลบ flag symbols
+    .replace(/[\u{2600}-\u{26FF}]/gu, '') // ลบ miscellaneous symbols
+    .replace(/[\u{2700}-\u{27BF}]/gu, '') // ลบ dingbats
+    .trim();
+}
+
 // ฟังก์ชันสำหรับดึงข้อมูลผู้เข้าชม
 async function fetchVisitorData(dateFrom, dateTo, pageFilter) {
   try {
@@ -337,6 +349,9 @@ document.getElementById('filterVisitors').addEventListener('click', renderVisito
 document.getElementById('downloadPdf').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'pt', 'a4');
+  
+  // ตั้งค่า font สำหรับภาษาไทย
+  doc.setFont('helvetica');
 
   // ตั้งค่าขนาดหน้า
   const pdfWidth = doc.internal.pageSize.getWidth();
@@ -347,19 +362,24 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   // เพิ่มหัวข้อหลัก
   doc.setFontSize(20);
   doc.setFont(undefined, 'bold');
-  doc.text('📊 รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
+  doc.text(cleanTextForPDF('รายงานการใช้งานแชทบอท'), pdfWidth / 2, yPosition, { align: 'center' });
   yPosition += 40;
 
   // เพิ่มวันที่
   doc.setFontSize(12);
   doc.setFont(undefined, 'normal');
-  doc.text(`วันที่สร้างรายงาน: ${new Date().toLocaleDateString('th-TH')}`, margin, yPosition);
+  const currentDate = new Date().toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  doc.text(cleanTextForPDF(`วันที่สร้างรายงาน: ${currentDate}`), margin, yPosition);
   yPosition += 30;
 
   // ส่วนคำถามยอดนิยม
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text('คำถามยอดนิยม', margin, yPosition);
+  doc.text(cleanTextForPDF('คำถามยอดนิยม'), margin, yPosition);
   yPosition += 30;
 
   // clone ตารางคำถาม
@@ -398,7 +418,7 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   // ส่วนรายงานผู้เข้าชม
   doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text('📊 รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
+  doc.text(cleanTextForPDF('รายงานผู้เข้าชมหน้าเว็บ'), margin, yPosition);
   yPosition += 30;
 
   // สรุปข้อมูลผู้เข้าชม
@@ -409,19 +429,19 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
 
   doc.setFontSize(12);
   doc.setFont(undefined, 'normal');
-  doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition);
+  doc.text(cleanTextForPDF(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`), margin, yPosition);
   yPosition += 20;
-  doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition);
+  doc.text(cleanTextForPDF(`จำนวนหน้าเว็บ: ${totalPages} หน้า`), margin, yPosition);
   yPosition += 20;
-  doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition);
+  doc.text(cleanTextForPDF(`จำนวนวัน: ${totalDays} วัน`), margin, yPosition);
   yPosition += 20;
-  doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition);
+  doc.text(cleanTextForPDF(`เฉลี่ยต่อวัน: ${avgVisits} คน`), margin, yPosition);
   yPosition += 30;
 
   // ตารางข้อมูลผู้เข้าชม
   doc.setFontSize(14);
   doc.setFont(undefined, 'bold');
-  doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
+  doc.text(cleanTextForPDF('รายละเอียดข้อมูลผู้เข้าชม'), margin, yPosition);
   yPosition += 30;
 
   // clone ตารางผู้เข้าชม
@@ -453,7 +473,7 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   // ตารางสรุปตามหน้าเว็บ
   doc.setFontSize(14);
   doc.setFont(undefined, 'bold');
-  doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
+  doc.text(cleanTextForPDF('สรุปตามหน้าเว็บ'), margin, yPosition);
   yPosition += 30;
 
   // clone ตารางสรุป
