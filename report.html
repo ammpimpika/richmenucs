@@ -136,13 +136,35 @@ let visitorChartInstance;
 
 // ฟังก์ชันสำหรับลบ emoji และตัวอักษรพิเศษ
 function cleanTextForPDF(text) {
+  if (!text) return '';
+  
   return text
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // ลบ emoji
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // ลบ symbols
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // ลบ transport symbols
-    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // ลบ flag symbols
-    .replace(/[\u{2600}-\u{26FF}]/gu, '') // ลบ miscellaneous symbols
-    .replace(/[\u{2700}-\u{27BF}]/gu, '') // ลบ dingbats
+    // ลบ emoji และสัญลักษณ์พิเศษ
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // emoji
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // symbols
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // transport symbols
+    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // flag symbols
+    .replace(/[\u{2600}-\u{26FF}]/gu, '') // miscellaneous symbols
+    .replace(/[\u{2700}-\u{27BF}]/gu, '') // dingbats
+    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F]/g, '') // เก็บแค่ ASCII และภาษาไทย
+    // ลบตัวอักษรที่อาจทำให้เกิดปัญหา
+    .replace(/[ØÜÊ]/g, '')
+    .replace(/[#@!+]/g, '')
+    .replace(/["']/g, '')
+    .replace(/[|]/g, '')
+    .replace(/[%]/g, '')
+    .replace(/[-]/g, '')
+    // ลบตัวอักษรพิเศษเพิ่มเติม
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
+    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
+    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
+    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
+    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
+    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
     .trim();
 }
 
@@ -352,6 +374,14 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   
   // ตั้งค่า font สำหรับภาษาไทย
   doc.setFont('helvetica');
+  
+  // ตั้งค่าการแสดงผลข้อความ
+  doc.setProperties({
+    title: 'รายงานการใช้งานแชทบอท',
+    subject: 'รายงานผู้เข้าชมและคำถามยอดนิยม',
+    author: 'ระบบแชทบอท',
+    creator: 'Chatbot System'
+  });
 
   // ตั้งค่าขนาดหน้า
   const pdfWidth = doc.internal.pageSize.getWidth();
@@ -386,11 +416,19 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   const faqTableDiv = document.getElementById('faqTable').parentElement;
   const faqClone = faqTableDiv.cloneNode(true);
 
-  // ลบแถวที่ count <= 1
+  // ลบแถวที่ count <= 1 และทำความสะอาดข้อความ
   const faqRows = faqClone.querySelectorAll('tbody tr');
   faqRows.forEach(tr => {
     const count = parseInt(tr.children[1].textContent);
-    if (count <= 1) tr.remove();
+    if (count <= 1) {
+      tr.remove();
+    } else {
+      // ทำความสะอาดข้อความในแต่ละเซลล์
+      const cells = tr.querySelectorAll('td');
+      cells.forEach(cell => {
+        cell.textContent = cleanTextForPDF(cell.textContent);
+      });
+    }
   });
 
   // append clone ชั่วคราวใน DOM
@@ -448,6 +486,15 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   const visitorTableDiv = document.getElementById('visitorTable').parentElement;
   const visitorClone = visitorTableDiv.cloneNode(true);
 
+  // ทำความสะอาดข้อความในตารางผู้เข้าชม
+  const visitorRows = visitorClone.querySelectorAll('tbody tr');
+  visitorRows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    cells.forEach(cell => {
+      cell.textContent = cleanTextForPDF(cell.textContent);
+    });
+  });
+
   // append clone ชั่วคราวใน DOM
   visitorClone.style.position = 'absolute';
   visitorClone.style.left = '-9999px';
@@ -479,6 +526,15 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
   // clone ตารางสรุป
   const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
   const summaryClone = summaryTableDiv.cloneNode(true);
+
+  // ทำความสะอาดข้อความในตารางสรุป
+  const summaryRows = summaryClone.querySelectorAll('tbody tr');
+  summaryRows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    cells.forEach(cell => {
+      cell.textContent = cleanTextForPDF(cell.textContent);
+    });
+  });
 
   // append clone ชั่วคราวใน DOM
   summaryClone.style.position = 'absolute';
