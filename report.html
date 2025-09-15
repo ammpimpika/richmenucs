@@ -6,8 +6,6 @@
 <title>รายงานจาก Google Sheets</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="max-w-5xl mx-auto py-10" id="reportContent">
@@ -122,7 +120,6 @@
     </div>
 
     <div class="text-center">
-      <button id="downloadPdf" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">📄 ดาวน์โหลด PDF</button>
     </div>
   </div>
 
@@ -336,187 +333,6 @@ renderVisitorReport();
 // Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
 document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
 
-// ดาวน์โหลด PDF
-document.getElementById('downloadPdf').addEventListener('click', async () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'pt', 'a4');
-  
-  // เพิ่มฟอนต์ Noto Sans Thai
-  try {
-    // โหลดฟอนต์ Regular
-    const regularFont = await fetch('fonts/NotoSansThai-Regular.ttf');
-    const regularFontArrayBuffer = await regularFont.arrayBuffer();
-    doc.addFont(regularFontArrayBuffer, 'NotoSansThai', 'normal');
-    
-    // โหลดฟอนต์ Bold
-    const boldFont = await fetch('fonts/NotoSansThai-Bold.ttf');
-    const boldFontArrayBuffer = await boldFont.arrayBuffer();
-    doc.addFont(boldFontArrayBuffer, 'NotoSansThai', 'bold');
-    
-    // โหลดฟอนต์ Medium
-    const mediumFont = await fetch('fonts/NotoSansThai-Medium.ttf');
-    const mediumFontArrayBuffer = await mediumFont.arrayBuffer();
-    doc.addFont(mediumFontArrayBuffer, 'NotoSansThai', 'medium');
-    
-    // ตั้งค่าเป็นฟอนต์เริ่มต้น
-    doc.setFont('NotoSansThai', 'normal');
-    
-    // ตั้งค่าคุณสมบัติของ PDF
-    doc.setProperties({
-      title: 'รายงานการใช้งานแชทบอท',
-      subject: 'รายงานผู้เข้าชมและคำถามยอดนิยม',
-      author: 'ระบบแชทบอท',
-      creator: 'Chatbot System',
-      keywords: 'รายงาน, แชทบอท, ผู้เข้าชม, คำถามยอดนิยม'
-    });
-  } catch (error) {
-    console.warn('ไม่สามารถโหลดฟอนต์ Noto Sans Thai ได้:', error);
-    // ใช้ฟอนต์เริ่มต้นถ้าโหลดไม่ได้
-    doc.setFont('helvetica', 'normal');
-  }
-
-  // ตั้งค่าขนาดหน้า
-  const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = doc.internal.pageSize.getHeight();
-  const margin = 40;
-  let yPosition = margin;
-
-  // เพิ่มหัวข้อหลัก
-  doc.setFontSize(20);
-  doc.setFont('NotoSansThai', 'bold');
-  doc.text('รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
-  yPosition += 40;
-
-  // เพิ่มวันที่
-  doc.setFontSize(12);
-  doc.setFont('NotoSansThai', 'normal');
-  const currentDate = new Date().toLocaleDateString('th-TH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  doc.text(`วันที่สร้างรายงาน: ${currentDate}`, margin, yPosition);
-  yPosition += 30;
-
-  // ส่วนคำถามยอดนิยม
-  doc.setFontSize(16);
-  doc.setFont('NotoSansThai', 'bold');
-  doc.text('คำถามยอดนิยม', margin, yPosition);
-  yPosition += 30;
-
-  // clone ตารางคำถาม
-  const faqTableDiv = document.getElementById('faqTable').parentElement;
-  const faqClone = faqTableDiv.cloneNode(true);
-
-  // ลบแถวที่ count <= 1
-  const faqRows = faqClone.querySelectorAll('tbody tr');
-  faqRows.forEach(tr => {
-    const count = parseInt(tr.children[1].textContent);
-    if (count <= 1) tr.remove();
-  });
-
-  // append clone ชั่วคราวใน DOM
-  faqClone.style.position = 'absolute';
-  faqClone.style.left = '-9999px';
-  faqClone.style.width = '794px';
-  document.body.appendChild(faqClone);
-
-  // capture ตารางคำถาม
-  const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
-  document.body.removeChild(faqClone);
-
-  const faqImgData = faqCanvas.toDataURL('image/png');
-  const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
-
-  if (yPosition + faqImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
-  yPosition += faqImgHeight + 30;
-
-  // ส่วนรายงานผู้เข้าชม
-  doc.setFontSize(16);
-  doc.setFont('NotoSansThai', 'bold');
-  doc.text('รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
-  yPosition += 30;
-
-  // สรุปข้อมูลผู้เข้าชม
-  const totalVisits = document.getElementById('totalVisits').textContent;
-  const totalPages = document.getElementById('totalPages').textContent;
-  const totalDays = document.getElementById('totalDays').textContent;
-  const avgVisits = document.getElementById('avgVisits').textContent;
-
-  doc.setFontSize(12);
-  doc.setFont('NotoSansThai', 'normal');
-  doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition);
-  yPosition += 20;
-  doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition);
-  yPosition += 20;
-  doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition);
-  yPosition += 20;
-  doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition);
-  yPosition += 30;
-
-  // ตารางข้อมูลผู้เข้าชม
-  doc.setFontSize(14);
-  doc.setFont('NotoSansThai', 'bold');
-  doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
-  yPosition += 30;
-
-  const visitorTableDiv = document.getElementById('visitorTable').parentElement;
-  const visitorClone = visitorTableDiv.cloneNode(true);
-
-  visitorClone.style.position = 'absolute';
-  visitorClone.style.left = '-9999px';
-  visitorClone.style.width = '794px';
-  document.body.appendChild(visitorClone);
-
-  const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
-  document.body.removeChild(visitorClone);
-
-  const visitorImgData = visitorCanvas.toDataURL('image/png');
-  const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
-
-  if (yPosition + visitorImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
-  yPosition += visitorImgHeight + 30;
-
-  // ตารางสรุปตามหน้าเว็บ
-  doc.setFontSize(14);
-  doc.setFont('NotoSansThai', 'bold');
-  doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
-  yPosition += 30;
-
-  const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
-  const summaryClone = summaryTableDiv.cloneNode(true);
-
-  summaryClone.style.position = 'absolute';
-  summaryClone.style.left = '-9999px';
-  summaryClone.style.width = '794px';
-  document.body.appendChild(summaryClone);
-
-  const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
-  document.body.removeChild(summaryClone);
-
-  const summaryImgData = summaryCanvas.toDataURL('image/png');
-  const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
-
-  if (yPosition + summaryImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
-
-  // บันทึกไฟล์
-  doc.save('report_chatbot_complete.pdf');
-});
 </script>
 </body>
 </html>
