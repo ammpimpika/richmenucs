@@ -332,151 +332,157 @@ renderReport();
 loadPageList();
 renderVisitorReport();
 
+
 // Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
-// Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
-  document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
+document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
 
-  // ดาวน์โหลด PDF
-  document.getElementById('downloadPdf').addEventListener('click', async () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'pt', 'a4');
-    
-    // ตั้งค่า font และ properties
-    doc.setFont('helvetica');
-    doc.setProperties({
-      title: 'รายงานการใช้งานแชทบอท',
-      subject: 'รายงานผู้เข้าชมและคำถามยอดนิยม',
-      author: 'ระบบแชทบอท',
-      creator: 'Chatbot System'
-    });
+// ดาวน์โหลด PDF
+document.getElementById('downloadPdf').addEventListener('click', async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'pt', 'a4');
 
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = doc.internal.pageSize.getHeight();
-    const margin = 40;
-    let yPosition = margin;
+  // ตั้งค่าขนาดหน้า
+  const pdfWidth = doc.internal.pageSize.getWidth();
+  const pdfHeight = doc.internal.pageSize.getHeight();
+  const margin = 40;
+  let yPosition = margin;
 
-    // หัวข้อหลัก
-    doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
-    doc.text('รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
-    yPosition += 40;
+  // เพิ่มหัวข้อหลัก
+  doc.setFontSize(20);
+  doc.setFont(undefined, 'bold');
+  doc.text('รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
+  yPosition += 40;
 
-    // วันที่
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
-    const currentDate = new Date().toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    doc.text(`วันที่สร้างรายงาน: ${currentDate}`, margin, yPosition);
-    yPosition += 30;
-
-    // ================= คำถามยอดนิยม =================
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('คำถามยอดนิยม', margin, yPosition);
-    yPosition += 30;
-
-    const faqTableDiv = document.getElementById('faqTable').parentElement;
-    const faqClone = faqTableDiv.cloneNode(true);
-
-    // กรองข้อมูล count <= 1
-    faqClone.querySelectorAll('tbody tr').forEach(tr => {
-      const count = parseInt(tr.children[1].textContent);
-      if (count <= 1) tr.remove();
-    });
-
-    faqClone.style.position = 'absolute';
-    faqClone.style.left = '-9999px';
-    faqClone.style.width = '794px';
-    document.body.appendChild(faqClone);
-
-    const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
-    document.body.removeChild(faqClone);
-
-    const faqImgData = faqCanvas.toDataURL('image/png');
-    const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
-
-    if (yPosition + faqImgHeight > pdfHeight - margin) {
-      doc.addPage();
-      yPosition = margin;
-    }
-    doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
-    yPosition += faqImgHeight + 30;
-
-    // ================= รายงานผู้เข้าชม =================
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
-    yPosition += 30;
-
-    const totalVisits = document.getElementById('totalVisits').textContent;
-    const totalPages = document.getElementById('totalPages').textContent;
-    const totalDays = document.getElementById('totalDays').textContent;
-    const avgVisits = document.getElementById('avgVisits').textContent;
-
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
-    doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition); yPosition += 20;
-    doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition); yPosition += 20;
-    doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition); yPosition += 20;
-    doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition); yPosition += 30;
-
-    // ================= ตารางผู้เข้าชม =================
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
-    yPosition += 30;
-
-    const visitorTableDiv = document.getElementById('visitorTable').parentElement;
-    const visitorClone = visitorTableDiv.cloneNode(true);
-    visitorClone.style.position = 'absolute';
-    visitorClone.style.left = '-9999px';
-    visitorClone.style.width = '794px';
-    document.body.appendChild(visitorClone);
-
-    const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
-    document.body.removeChild(visitorClone);
-
-    const visitorImgData = visitorCanvas.toDataURL('image/png');
-    const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
-
-    if (yPosition + visitorImgHeight > pdfHeight - margin) {
-      doc.addPage();
-      yPosition = margin;
-    }
-    doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
-    yPosition += visitorImgHeight + 30;
-
-    // ================= สรุปตามหน้าเว็บ =================
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
-    yPosition += 30;
-
-    const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
-    const summaryClone = summaryTableDiv.cloneNode(true);
-    summaryClone.style.position = 'absolute';
-    summaryClone.style.left = '-9999px';
-    summaryClone.style.width = '794px';
-    document.body.appendChild(summaryClone);
-
-    const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
-    document.body.removeChild(summaryClone);
-
-    const summaryImgData = summaryCanvas.toDataURL('image/png');
-    const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
-
-    if (yPosition + summaryImgHeight > pdfHeight - margin) {
-      doc.addPage();
-      yPosition = margin;
-    }
-    doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
-
-    // ================= Save =================
-    doc.save('report_chatbot_complete.pdf');
+  // เพิ่มวันที่
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  const currentDate = new Date().toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
+  doc.text(`วันที่สร้างรายงาน: ${currentDate}`, margin, yPosition);
+  yPosition += 30;
+
+  // ส่วนคำถามยอดนิยม
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('คำถามยอดนิยม', margin, yPosition);
+  yPosition += 30;
+
+  // clone ตารางคำถาม
+  const faqTableDiv = document.getElementById('faqTable').parentElement;
+  const faqClone = faqTableDiv.cloneNode(true);
+
+  // ลบแถวที่ count <= 1
+  const faqRows = faqClone.querySelectorAll('tbody tr');
+  faqRows.forEach(tr => {
+    const count = parseInt(tr.children[1].textContent);
+    if (count <= 1) tr.remove();
+  });
+
+  // append clone ชั่วคราวใน DOM
+  faqClone.style.position = 'absolute';
+  faqClone.style.left = '-9999px';
+  faqClone.style.width = '794px';
+  document.body.appendChild(faqClone);
+
+  // capture ตารางคำถาม
+  const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
+  document.body.removeChild(faqClone);
+
+  const faqImgData = faqCanvas.toDataURL('image/png');
+  const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
+
+  if (yPosition + faqImgHeight > pdfHeight - margin) {
+    doc.addPage();
+    yPosition = margin;
+  }
+
+  doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
+  yPosition += faqImgHeight + 30;
+
+  // ส่วนรายงานผู้เข้าชม
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
+  yPosition += 30;
+
+  // สรุปข้อมูลผู้เข้าชม
+  const totalVisits = document.getElementById('totalVisits').textContent;
+  const totalPages = document.getElementById('totalPages').textContent;
+  const totalDays = document.getElementById('totalDays').textContent;
+  const avgVisits = document.getElementById('avgVisits').textContent;
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition);
+  yPosition += 30;
+
+  // ตารางข้อมูลผู้เข้าชม
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
+  yPosition += 30;
+
+  const visitorTableDiv = document.getElementById('visitorTable').parentElement;
+  const visitorClone = visitorTableDiv.cloneNode(true);
+
+  visitorClone.style.position = 'absolute';
+  visitorClone.style.left = '-9999px';
+  visitorClone.style.width = '794px';
+  document.body.appendChild(visitorClone);
+
+  const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
+  document.body.removeChild(visitorClone);
+
+  const visitorImgData = visitorCanvas.toDataURL('image/png');
+  const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
+
+  if (yPosition + visitorImgHeight > pdfHeight - margin) {
+    doc.addPage();
+    yPosition = margin;
+  }
+
+  doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
+  yPosition += visitorImgHeight + 30;
+
+  // ตารางสรุปตามหน้าเว็บ
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
+  yPosition += 30;
+
+  const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
+  const summaryClone = summaryTableDiv.cloneNode(true);
+
+  summaryClone.style.position = 'absolute';
+  summaryClone.style.left = '-9999px';
+  summaryClone.style.width = '794px';
+  document.body.appendChild(summaryClone);
+
+  const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
+  document.body.removeChild(summaryClone);
+
+  const summaryImgData = summaryCanvas.toDataURL('image/png');
+  const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
+
+  if (yPosition + summaryImgHeight > pdfHeight - margin) {
+    doc.addPage();
+    yPosition = margin;
+  }
+
+  doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
+
+  // บันทึกไฟล์
+  doc.save('report_chatbot_complete.pdf');
+});
 </script>
 </body>
 </html>
