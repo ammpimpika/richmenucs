@@ -134,51 +134,7 @@ const API_KEY = 'AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ';
 let chartInstance;
 let visitorChartInstance;
 
-// ฟังก์ชันสำหรับลบ emoji และตัวอักษรพิเศษ
-function cleanTextForPDF(text) {
-  if (!text) return '';
-  
-  return text
-    // ลบ emoji และสัญลักษณ์พิเศษ
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // emoji
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // symbols
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // transport symbols
-    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // flag symbols
-    .replace(/[\u{2600}-\u{26FF}]/gu, '') // miscellaneous symbols
-    .replace(/[\u{2700}-\u{27BF}]/gu, '') // dingbats
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F]/g, '') // เก็บแค่ ASCII และภาษาไทย
-    // ลบตัวอักษรที่อาจทำให้เกิดปัญหา
-    .replace(/[ØÜÊ]/g, '')
-    .replace(/[#@!+]/g, '')
-    .replace(/["']/g, '')
-    .replace(/[|]/g, '')
-    .replace(/[%]/g, '')
-    .replace(/[-]/g, '')
-    // ลบตัวอักษรพิเศษเพิ่มเติม
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    // ลบตัวอักษรพิเศษที่อาจทำให้เกิดปัญหา
-    .replace(/[^\u0020-\u007E\u0E00-\u0E7F\u0E80-\u0EFF\u0F00-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF\u0F80-\u0FFF]/g, '') // เก็บแค่ ASCII, ภาษาไทย, และตัวอักษรไทยเพิ่มเติม
-    .trim();
-}
+
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้เข้าชม
 async function fetchVisitorData(dateFrom, dateTo, pageFilter) {
@@ -377,202 +333,150 @@ loadPageList();
 renderVisitorReport();
 
 // Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
-document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
+// Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
+  document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
 
-// ดาวน์โหลด PDF
-document.getElementById('downloadPdf').addEventListener('click', async () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'pt', 'a4');
-  
-  // ตั้งค่า font สำหรับภาษาไทย
-  doc.setFont('helvetica');
-  
-  // ตั้งค่าการแสดงผลข้อความ
-  doc.setProperties({
-    title: 'รายงานการใช้งานแชทบอท',
-    subject: 'รายงานผู้เข้าชมและคำถามยอดนิยม',
-    author: 'ระบบแชทบอท',
-    creator: 'Chatbot System'
-  });
+  // ดาวน์โหลด PDF
+  document.getElementById('downloadPdf').addEventListener('click', async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'pt', 'a4');
+    
+    // ตั้งค่า font และ properties
+    doc.setFont('helvetica');
+    doc.setProperties({
+      title: 'รายงานการใช้งานแชทบอท',
+      subject: 'รายงานผู้เข้าชมและคำถามยอดนิยม',
+      author: 'ระบบแชทบอท',
+      creator: 'Chatbot System'
+    });
 
-  // ตั้งค่าขนาดหน้า
-  const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = doc.internal.pageSize.getHeight();
-  const margin = 40;
-  let yPosition = margin;
+    const pdfWidth = doc.internal.pageSize.getWidth();
+    const pdfHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+    let yPosition = margin;
 
-  // เพิ่มหัวข้อหลัก
-  doc.setFontSize(20);
-  doc.setFont(undefined, 'bold');
-  doc.text(cleanTextForPDF('รายงานการใช้งานแชทบอท'), pdfWidth / 2, yPosition, { align: 'center' });
-  yPosition += 40;
+    // หัวข้อหลัก
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
+    yPosition += 40;
 
-  // เพิ่มวันที่
-  doc.setFontSize(12);
-  doc.setFont(undefined, 'normal');
-  const currentDate = new Date().toLocaleDateString('th-TH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  doc.text(cleanTextForPDF(`วันที่สร้างรายงาน: ${currentDate}`), margin, yPosition);
-  yPosition += 30;
+    // วันที่
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    const currentDate = new Date().toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    doc.text(`วันที่สร้างรายงาน: ${currentDate}`, margin, yPosition);
+    yPosition += 30;
 
-  // ส่วนคำถามยอดนิยม
-  doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
-  doc.text(cleanTextForPDF('คำถามยอดนิยม'), margin, yPosition);
-  yPosition += 30;
+    // ================= คำถามยอดนิยม =================
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('คำถามยอดนิยม', margin, yPosition);
+    yPosition += 30;
 
-  // clone ตารางคำถาม
-  const faqTableDiv = document.getElementById('faqTable').parentElement;
-  const faqClone = faqTableDiv.cloneNode(true);
+    const faqTableDiv = document.getElementById('faqTable').parentElement;
+    const faqClone = faqTableDiv.cloneNode(true);
 
-  // ลบแถวที่ count <= 1 และทำความสะอาดข้อความ
-  const faqRows = faqClone.querySelectorAll('tbody tr');
-  faqRows.forEach(tr => {
-    const count = parseInt(tr.children[1].textContent);
-    if (count <= 1) {
-      tr.remove();
-    } else {
-      // ทำความสะอาดข้อความในแต่ละเซลล์
-      const cells = tr.querySelectorAll('td');
-      cells.forEach(cell => {
-        cell.textContent = cleanTextForPDF(cell.textContent);
-      });
+    // กรองข้อมูล count <= 1
+    faqClone.querySelectorAll('tbody tr').forEach(tr => {
+      const count = parseInt(tr.children[1].textContent);
+      if (count <= 1) tr.remove();
+    });
+
+    faqClone.style.position = 'absolute';
+    faqClone.style.left = '-9999px';
+    faqClone.style.width = '794px';
+    document.body.appendChild(faqClone);
+
+    const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
+    document.body.removeChild(faqClone);
+
+    const faqImgData = faqCanvas.toDataURL('image/png');
+    const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
+
+    if (yPosition + faqImgHeight > pdfHeight - margin) {
+      doc.addPage();
+      yPosition = margin;
     }
+    doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
+    yPosition += faqImgHeight + 30;
+
+    // ================= รายงานผู้เข้าชม =================
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
+    yPosition += 30;
+
+    const totalVisits = document.getElementById('totalVisits').textContent;
+    const totalPages = document.getElementById('totalPages').textContent;
+    const totalDays = document.getElementById('totalDays').textContent;
+    const avgVisits = document.getElementById('avgVisits').textContent;
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition); yPosition += 20;
+    doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition); yPosition += 20;
+    doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition); yPosition += 20;
+    doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition); yPosition += 30;
+
+    // ================= ตารางผู้เข้าชม =================
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
+    yPosition += 30;
+
+    const visitorTableDiv = document.getElementById('visitorTable').parentElement;
+    const visitorClone = visitorTableDiv.cloneNode(true);
+    visitorClone.style.position = 'absolute';
+    visitorClone.style.left = '-9999px';
+    visitorClone.style.width = '794px';
+    document.body.appendChild(visitorClone);
+
+    const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
+    document.body.removeChild(visitorClone);
+
+    const visitorImgData = visitorCanvas.toDataURL('image/png');
+    const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
+
+    if (yPosition + visitorImgHeight > pdfHeight - margin) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
+    yPosition += visitorImgHeight + 30;
+
+    // ================= สรุปตามหน้าเว็บ =================
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
+    yPosition += 30;
+
+    const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
+    const summaryClone = summaryTableDiv.cloneNode(true);
+    summaryClone.style.position = 'absolute';
+    summaryClone.style.left = '-9999px';
+    summaryClone.style.width = '794px';
+    document.body.appendChild(summaryClone);
+
+    const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
+    document.body.removeChild(summaryClone);
+
+    const summaryImgData = summaryCanvas.toDataURL('image/png');
+    const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
+
+    if (yPosition + summaryImgHeight > pdfHeight - margin) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
+
+    // ================= Save =================
+    doc.save('report_chatbot_complete.pdf');
   });
-
-  // append clone ชั่วคราวใน DOM
-  faqClone.style.position = 'absolute';
-  faqClone.style.left = '-9999px';
-  faqClone.style.width = '794px';
-  document.body.appendChild(faqClone);
-
-  // capture ตารางคำถาม
-  const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
-  document.body.removeChild(faqClone);
-
-  const faqImgData = faqCanvas.toDataURL('image/png');
-  const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
-
-  // ตรวจสอบว่าตารางคำถามจะเกินหน้าไหม
-  if (yPosition + faqImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
-  yPosition += faqImgHeight + 30;
-
-  // ส่วนรายงานผู้เข้าชม
-  doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
-  doc.text(cleanTextForPDF('รายงานผู้เข้าชมหน้าเว็บ'), margin, yPosition);
-  yPosition += 30;
-
-  // สรุปข้อมูลผู้เข้าชม
-  const totalVisits = document.getElementById('totalVisits').textContent;
-  const totalPages = document.getElementById('totalPages').textContent;
-  const totalDays = document.getElementById('totalDays').textContent;
-  const avgVisits = document.getElementById('avgVisits').textContent;
-
-  doc.setFontSize(12);
-  doc.setFont(undefined, 'normal');
-  doc.text(cleanTextForPDF(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`), margin, yPosition);
-  yPosition += 20;
-  doc.text(cleanTextForPDF(`จำนวนหน้าเว็บ: ${totalPages} หน้า`), margin, yPosition);
-  yPosition += 20;
-  doc.text(cleanTextForPDF(`จำนวนวัน: ${totalDays} วัน`), margin, yPosition);
-  yPosition += 20;
-  doc.text(cleanTextForPDF(`เฉลี่ยต่อวัน: ${avgVisits} คน`), margin, yPosition);
-  yPosition += 30;
-
-  // ตารางข้อมูลผู้เข้าชม
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text(cleanTextForPDF('รายละเอียดข้อมูลผู้เข้าชม'), margin, yPosition);
-  yPosition += 30;
-
-  // clone ตารางผู้เข้าชม
-  const visitorTableDiv = document.getElementById('visitorTable').parentElement;
-  const visitorClone = visitorTableDiv.cloneNode(true);
-
-  // ทำความสะอาดข้อความในตารางผู้เข้าชม
-  const visitorRows = visitorClone.querySelectorAll('tbody tr');
-  visitorRows.forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    cells.forEach(cell => {
-      cell.textContent = cleanTextForPDF(cell.textContent);
-    });
-  });
-
-  // append clone ชั่วคราวใน DOM
-  visitorClone.style.position = 'absolute';
-  visitorClone.style.left = '-9999px';
-  visitorClone.style.width = '794px';
-  document.body.appendChild(visitorClone);
-
-  // capture ตารางผู้เข้าชม
-  const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
-  document.body.removeChild(visitorClone);
-
-  const visitorImgData = visitorCanvas.toDataURL('image/png');
-  const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
-
-  // ตรวจสอบว่าตารางผู้เข้าชมจะเกินหน้าไหม
-  if (yPosition + visitorImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
-  yPosition += visitorImgHeight + 30;
-
-  // ตารางสรุปตามหน้าเว็บ
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text(cleanTextForPDF('สรุปตามหน้าเว็บ'), margin, yPosition);
-  yPosition += 30;
-
-  // clone ตารางสรุป
-  const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
-  const summaryClone = summaryTableDiv.cloneNode(true);
-
-  // ทำความสะอาดข้อความในตารางสรุป
-  const summaryRows = summaryClone.querySelectorAll('tbody tr');
-  summaryRows.forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    cells.forEach(cell => {
-      cell.textContent = cleanTextForPDF(cell.textContent);
-    });
-  });
-
-  // append clone ชั่วคราวใน DOM
-  summaryClone.style.position = 'absolute';
-  summaryClone.style.left = '-9999px';
-  summaryClone.style.width = '794px';
-  document.body.appendChild(summaryClone);
-
-  // capture ตารางสรุป
-  const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
-  document.body.removeChild(summaryClone);
-
-  const summaryImgData = summaryCanvas.toDataURL('image/png');
-  const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
-
-  // ตรวจสอบว่าตารางสรุปจะเกินหน้าไหม
-  if (yPosition + summaryImgHeight > pdfHeight - margin) {
-    doc.addPage();
-    yPosition = margin;
-  }
-
-  doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
-
-  // บันทึกไฟล์
-  doc.save('report_chatbot_complete.pdf');
-});
-
 </script>
 </body>
 </html>
