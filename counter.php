@@ -9,23 +9,23 @@ try {
     $today = date("Y-m-d");
 
     // ตรวจสอบว่ามีข้อมูลของวันนี้แล้วหรือยัง
-    $stmt = $conn->prepare("SELECT `count` FROM visitors WHERE page_name = ?  ");
-    $stmt->execute([$page]);
+    $stmt = $conn->prepare("SELECT `count` FROM visitors WHERE page_name = ? AND visit_date = ?");
+    $stmt->execute([$page, $today]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existing) {
         // อัปเดทจำนวนผู้เข้าชม
-        $stmt = $conn->prepare("UPDATE visitors SET `count` = `count` + 1 WHERE page_name = ? ");
+        $stmt = $conn->prepare("UPDATE visitors SET `count` = `count` + 1 WHERE page_name = ? AND visit_date = ?");
         $stmt->execute([$page, $today]);
         $countToday = $existing['count'] + 1;
     } else {
         // เพิ่มข้อมูลใหม่
-        $stmt = $conn->prepare("INSERT INTO visitors (page_name, `count`) VALUES (?, ?, 1)");
+        $stmt = $conn->prepare("INSERT INTO visitors (page_name, visit_date, `count`) VALUES (?, ?, 1)");
         $stmt->execute([$page, $today]);
         $countToday = 1;
     }
 
-    echo json_encode(['visits' => $countTotal]);
+    echo json_encode(['visits' => $countToday]);
 
 } catch (Exception $e) {
     echo json_encode(['visits' => 0, 'error' => $e->getMessage()]);
