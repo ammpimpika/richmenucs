@@ -31,6 +31,96 @@
       <canvas id="faqChart"></canvas>
     </div>
 
+    <!-- ส่วนรายงานผู้เข้าชมหน้าเว็บ -->
+    <div class="bg-white p-6 rounded-xl shadow mb-8">
+      <h2 class="text-lg font-semibold mb-4">📊 รายงานผู้เข้าชมหน้าเว็บ</h2>
+      
+      <!-- ฟอร์มกรองข้อมูล -->
+      <div class="bg-gray-50 p-4 rounded-lg mb-4">
+        <h3 class="text-md font-medium mb-3">🔍 กรองข้อมูล</h3>
+        <div class="flex flex-wrap gap-4 items-end">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น:</label>
+            <input type="date" id="dateFrom" class="border border-gray-300 rounded px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด:</label>
+            <input type="date" id="dateTo" class="border border-gray-300 rounded px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">หน้าเว็บ:</label>
+            <select id="pageFilter" class="border border-gray-300 rounded px-3 py-2">
+              <option value="">ทั้งหมด</option>
+            </select>
+          </div>
+          <button id="filterVisitors" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">🔍 กรองข้อมูล</button>
+        </div>
+      </div>
+
+      <!-- สรุปข้อมูล -->
+      <div class="bg-blue-50 p-4 rounded-lg mb-4">
+        <h3 class="text-md font-medium mb-2">📈 สรุปข้อมูล</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600" id="totalVisits">0</div>
+            <div class="text-sm text-gray-600">ผู้เข้าชมทั้งหมด</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600" id="totalPages">0</div>
+            <div class="text-sm text-gray-600">จำนวนหน้าเว็บ</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-purple-600" id="totalDays">0</div>
+            <div class="text-sm text-gray-600">จำนวนวัน</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-orange-600" id="avgVisits">0</div>
+            <div class="text-sm text-gray-600">เฉลี่ยต่อวัน</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ตารางข้อมูลผู้เข้าชม -->
+      <div class="mb-4">
+        <h3 class="text-md font-medium mb-2">📋 รายละเอียดข้อมูล</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse border border-gray-300" id="visitorTable">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="border border-gray-300 px-4 py-2 text-left">หน้าเว็บ</th>
+                <th class="border border-gray-300 px-4 py-2 text-left">วันที่</th>
+                <th class="border border-gray-300 px-4 py-2 text-center">จำนวนผู้เข้าชม</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- สรุปตามหน้าเว็บ -->
+      <div class="mb-4">
+        <h3 class="text-md font-medium mb-2">📊 สรุปตามหน้าเว็บ</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse border border-gray-300" id="pageSummaryTable">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="border border-gray-300 px-4 py-2 text-left">หน้าเว็บ</th>
+                <th class="border border-gray-300 px-4 py-2 text-center">จำนวนผู้เข้าชมทั้งหมด</th>
+                <th class="border border-gray-300 px-4 py-2 text-center">เปอร์เซ็นต์</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- กราฟผู้เข้าชม -->
+      <div>
+        <h3 class="text-md font-medium mb-2">📈 กราฟผู้เข้าชมตามหน้าเว็บ</h3>
+        <canvas id="visitorChart"></canvas>
+      </div>
+    </div>
+
     <div class="text-center">
       <button id="downloadPdf" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">📄 ดาวน์โหลด PDF</button>
     </div>
@@ -42,6 +132,129 @@ const RANGE = 'Sheet1!A1:B100';
 const API_KEY = 'AIzaSyA98s0js2M4D9y4MGZE4qwnrFTah45jRoQ';
 
 let chartInstance;
+let visitorChartInstance;
+
+// ฟังก์ชันสำหรับดึงข้อมูลผู้เข้าชม
+async function fetchVisitorData(dateFrom, dateTo, pageFilter) {
+  try {
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    if (pageFilter) params.append('page', pageFilter);
+    
+    const response = await fetch(`api/visitor_report.php?${params}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching visitor data:', error);
+    return { visitors: [], summary: {} };
+  }
+}
+
+// ฟังก์ชันสำหรับแสดงข้อมูลผู้เข้าชม
+async function renderVisitorReport() {
+  const dateFrom = document.getElementById('dateFrom').value || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const dateTo = document.getElementById('dateTo').value || new Date().toISOString().split('T')[0];
+  const pageFilter = document.getElementById('pageFilter').value;
+  
+  const data = await fetchVisitorData(dateFrom, dateTo, pageFilter);
+  
+  // อัพเดทสรุปข้อมูล
+  document.getElementById('totalVisits').textContent = data.summary.total_visits || 0;
+  document.getElementById('totalPages').textContent = data.summary.total_pages || 0;
+  document.getElementById('totalDays').textContent = data.summary.total_days || 0;
+  document.getElementById('avgVisits').textContent = data.summary.avg_visits || 0;
+  
+  // แสดงตารางข้อมูลผู้เข้าชม
+  const visitorTable = document.getElementById('visitorTable').querySelector('tbody');
+  visitorTable.innerHTML = '';
+  
+  if (data.visitors && data.visitors.length > 0) {
+    data.visitors.forEach(visitor => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="border border-gray-300 px-4 py-2">${visitor.page_name}</td>
+        <td class="border border-gray-300 px-4 py-2">${visitor.visit_date}</td>
+        <td class="border border-gray-300 px-4 py-2 text-center">${visitor.count}</td>
+      `;
+      visitorTable.appendChild(row);
+    });
+  } else {
+    visitorTable.innerHTML = '<tr><td colspan="3" class="border border-gray-300 px-4 py-2 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
+  }
+  
+  // แสดงตารางสรุปตามหน้าเว็บ
+  const pageSummaryTable = document.getElementById('pageSummaryTable').querySelector('tbody');
+  pageSummaryTable.innerHTML = '';
+  
+  if (data.page_summary && data.page_summary.length > 0) {
+    data.page_summary.forEach(page => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="border border-gray-300 px-4 py-2">${page.page_name}</td>
+        <td class="border border-gray-300 px-4 py-2 text-center">${page.total_count}</td>
+        <td class="border border-gray-300 px-4 py-2 text-center">${page.percentage}%</td>
+      `;
+      pageSummaryTable.appendChild(row);
+    });
+  } else {
+    pageSummaryTable.innerHTML = '<tr><td colspan="3" class="border border-gray-300 px-4 py-2 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
+  }
+  
+  // สร้างกราฟผู้เข้าชม
+  if (data.page_summary && data.page_summary.length > 0) {
+    const ctx = document.getElementById('visitorChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(34, 197, 94, 0.8)');
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0.3)');
+    
+    if (visitorChartInstance) visitorChartInstance.destroy();
+    visitorChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.page_summary.map(p => p.page_name),
+        datasets: [{
+          label: 'จำนวนผู้เข้าชม',
+          data: data.page_summary.map(p => p.total_count),
+          backgroundColor: gradient,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { 
+          legend: { display: false }, 
+          tooltip: { enabled: true } 
+        },
+        scales: { 
+          y: { beginAtZero: true } 
+        }
+      }
+    });
+  }
+}
+
+// ฟังก์ชันสำหรับโหลดรายการหน้าเว็บ
+async function loadPageList() {
+  try {
+    const response = await fetch('api/visitor_pages.php');
+    const data = await response.json();
+    
+    const pageFilter = document.getElementById('pageFilter');
+    pageFilter.innerHTML = '<option value="">ทั้งหมด</option>';
+    
+    if (data.pages && data.pages.length > 0) {
+      data.pages.forEach(page => {
+        const option = document.createElement('option');
+        option.value = page;
+        option.textContent = page;
+        pageFilter.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error('Error loading page list:', error);
+  }
+}
 
 async function fetchSheetData() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
@@ -113,53 +326,163 @@ async function renderReport() {
 
 renderReport();
 
+// โหลดข้อมูลผู้เข้าชม
+loadPageList();
+renderVisitorReport();
+
+// Event listeners สำหรับฟอร์มกรองข้อมูลผู้เข้าชม
+document.getElementById('filterVisitors').addEventListener('click', renderVisitorReport);
+
 // ดาวน์โหลด PDF
 document.getElementById('downloadPdf').addEventListener('click', async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'pt', 'a4');
 
-  // clone ตาราง
-  const tableDiv = document.getElementById('faqTable').parentElement;
-  const clone = tableDiv.cloneNode(true);
+  // ตั้งค่าขนาดหน้า
+  const pdfWidth = doc.internal.pageSize.getWidth();
+  const pdfHeight = doc.internal.pageSize.getHeight();
+  const margin = 40;
+  let yPosition = margin;
+
+  // เพิ่มหัวข้อหลัก
+  doc.setFontSize(20);
+  doc.setFont(undefined, 'bold');
+  doc.text('📊 รายงานการใช้งานแชทบอท', pdfWidth / 2, yPosition, { align: 'center' });
+  yPosition += 40;
+
+  // เพิ่มวันที่
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text(`วันที่สร้างรายงาน: ${new Date().toLocaleDateString('th-TH')}`, margin, yPosition);
+  yPosition += 30;
+
+  // ส่วนคำถามยอดนิยม
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('คำถามยอดนิยม', margin, yPosition);
+  yPosition += 30;
+
+  // clone ตารางคำถาม
+  const faqTableDiv = document.getElementById('faqTable').parentElement;
+  const faqClone = faqTableDiv.cloneNode(true);
 
   // ลบแถวที่ count <= 1
-  const rows = clone.querySelectorAll('tbody tr');
-  rows.forEach(tr => {
+  const faqRows = faqClone.querySelectorAll('tbody tr');
+  faqRows.forEach(tr => {
     const count = parseInt(tr.children[1].textContent);
     if (count <= 1) tr.remove();
   });
 
-  // append clone ชั่วคราวใน DOM เพื่อ html2canvas capture
-  clone.style.position = 'absolute';
-  clone.style.left = '-9999px';
-  clone.style.width = '794px';
-  document.body.appendChild(clone);
+  // append clone ชั่วคราวใน DOM
+  faqClone.style.position = 'absolute';
+  faqClone.style.left = '-9999px';
+  faqClone.style.width = '794px';
+  document.body.appendChild(faqClone);
 
-  // capture
-  const canvas = await html2canvas(clone, { scale: 3, useCORS: true });
+  // capture ตารางคำถาม
+  const faqCanvas = await html2canvas(faqClone, { scale: 2, useCORS: true });
+  document.body.removeChild(faqClone);
 
-  // ลบ clone หลัง capture
-  document.body.removeChild(clone);
+  const faqImgData = faqCanvas.toDataURL('image/png');
+  const faqImgHeight = (faqCanvas.height * (pdfWidth - 2 * margin)) / faqCanvas.width;
 
-  const imgData = canvas.toDataURL('image/png');
-  const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = doc.internal.pageSize.getHeight();
-  const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
-  let heightLeft = imgHeight;
-  let position = 0;
-
-  doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-  heightLeft -= pdfHeight;
-
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
+  // ตรวจสอบว่าตารางคำถามจะเกินหน้าไหม
+  if (yPosition + faqImgHeight > pdfHeight - margin) {
     doc.addPage();
-    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-    heightLeft -= pdfHeight;
+    yPosition = margin;
   }
 
-  doc.save('report_chatbot.pdf');
+  doc.addImage(faqImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, faqImgHeight);
+  yPosition += faqImgHeight + 30;
+
+  // ส่วนรายงานผู้เข้าชม
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('📊 รายงานผู้เข้าชมหน้าเว็บ', margin, yPosition);
+  yPosition += 30;
+
+  // สรุปข้อมูลผู้เข้าชม
+  const totalVisits = document.getElementById('totalVisits').textContent;
+  const totalPages = document.getElementById('totalPages').textContent;
+  const totalDays = document.getElementById('totalDays').textContent;
+  const avgVisits = document.getElementById('avgVisits').textContent;
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'normal');
+  doc.text(`จำนวนผู้เข้าชมทั้งหมด: ${totalVisits} คน`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`จำนวนหน้าเว็บ: ${totalPages} หน้า`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`จำนวนวัน: ${totalDays} วัน`, margin, yPosition);
+  yPosition += 20;
+  doc.text(`เฉลี่ยต่อวัน: ${avgVisits} คน`, margin, yPosition);
+  yPosition += 30;
+
+  // ตารางข้อมูลผู้เข้าชม
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('รายละเอียดข้อมูลผู้เข้าชม', margin, yPosition);
+  yPosition += 30;
+
+  // clone ตารางผู้เข้าชม
+  const visitorTableDiv = document.getElementById('visitorTable').parentElement;
+  const visitorClone = visitorTableDiv.cloneNode(true);
+
+  // append clone ชั่วคราวใน DOM
+  visitorClone.style.position = 'absolute';
+  visitorClone.style.left = '-9999px';
+  visitorClone.style.width = '794px';
+  document.body.appendChild(visitorClone);
+
+  // capture ตารางผู้เข้าชม
+  const visitorCanvas = await html2canvas(visitorClone, { scale: 2, useCORS: true });
+  document.body.removeChild(visitorClone);
+
+  const visitorImgData = visitorCanvas.toDataURL('image/png');
+  const visitorImgHeight = (visitorCanvas.height * (pdfWidth - 2 * margin)) / visitorCanvas.width;
+
+  // ตรวจสอบว่าตารางผู้เข้าชมจะเกินหน้าไหม
+  if (yPosition + visitorImgHeight > pdfHeight - margin) {
+    doc.addPage();
+    yPosition = margin;
+  }
+
+  doc.addImage(visitorImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, visitorImgHeight);
+  yPosition += visitorImgHeight + 30;
+
+  // ตารางสรุปตามหน้าเว็บ
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('สรุปตามหน้าเว็บ', margin, yPosition);
+  yPosition += 30;
+
+  // clone ตารางสรุป
+  const summaryTableDiv = document.getElementById('pageSummaryTable').parentElement;
+  const summaryClone = summaryTableDiv.cloneNode(true);
+
+  // append clone ชั่วคราวใน DOM
+  summaryClone.style.position = 'absolute';
+  summaryClone.style.left = '-9999px';
+  summaryClone.style.width = '794px';
+  document.body.appendChild(summaryClone);
+
+  // capture ตารางสรุป
+  const summaryCanvas = await html2canvas(summaryClone, { scale: 2, useCORS: true });
+  document.body.removeChild(summaryClone);
+
+  const summaryImgData = summaryCanvas.toDataURL('image/png');
+  const summaryImgHeight = (summaryCanvas.height * (pdfWidth - 2 * margin)) / summaryCanvas.width;
+
+  // ตรวจสอบว่าตารางสรุปจะเกินหน้าไหม
+  if (yPosition + summaryImgHeight > pdfHeight - margin) {
+    doc.addPage();
+    yPosition = margin;
+  }
+
+  doc.addImage(summaryImgData, 'PNG', margin, yPosition, pdfWidth - 2 * margin, summaryImgHeight);
+
+  // บันทึกไฟล์
+  doc.save('report_chatbot_complete.pdf');
 });
 
 </script>
