@@ -12,6 +12,7 @@
     <!-- ฟอร์มเพิ่ม/แก้ไข -->
     <div class="bg-white rounded shadow p-6 mb-6">
       <form id="deptForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0">
+        <input type="hidden" id="deptId" name="id" value="">
         <div class="flex-1">
           <label class="block mb-1">ชื่อปริญญา</label>
           <input type="text" id="degreeName" name="degree_name" class="w-full border rounded px-3 py-2" required>
@@ -50,6 +51,14 @@
         .then(data => {
           const table = document.getElementById('deptTable');
           table.innerHTML = '';
+          if (data.length === 0) {
+            table.innerHTML = `
+              <tr>
+                <td colspan="3" class="py-4 text-gray-500">ยังไม่มีข้อมูล</td>
+              </tr>
+            `;
+            return;
+          }
           data.forEach(item => {
             table.innerHTML += `
               <tr>
@@ -62,6 +71,15 @@
               </tr>
             `;
           });
+        })
+        .catch(error => {
+          console.error('Error loading department info:', error);
+          const table = document.getElementById('deptTable');
+          table.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-4 text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td>
+            </tr>
+          `;
         });
     }
 
@@ -74,9 +92,18 @@
         method: 'POST',
         body: formData
       }).then(res => res.json())
-        .then(() => {
-          resetForm();
-          loadDept();
+        .then(data => {
+          if (data.success) {
+            resetForm();
+            loadDept();
+            alert('บันทึกข้อมูลสำเร็จ');
+          } else {
+            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+          }
+        })
+        .catch(error => {
+          console.error('Error saving department info:', error);
+          alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         });
     };
 
@@ -85,10 +112,18 @@
       fetch('api/department_info.php?id=' + id)
         .then(res => res.json())
         .then(item => {
-          document.getElementById('deptId').value = item.id;
-          document.getElementById('degreeName').value = item.degree_name;
-          document.getElementById('learningSupport').value = item.learning_support;
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (item) {
+            document.getElementById('deptId').value = item.id;
+            document.getElementById('degreeName').value = item.degree_name;
+            document.getElementById('learningSupport').value = item.learning_support;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            alert('ไม่พบข้อมูลที่ต้องการแก้ไข');
+          }
+        })
+        .catch(error => {
+          console.error('Error loading department info for edit:', error);
+          alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
         });
     }
 
@@ -103,7 +138,18 @@
           body: formData
         })
         .then(res => res.json())
-        .then(() => loadDept());
+        .then(data => {
+          if (data.success) {
+            loadDept();
+            alert('ลบข้อมูลสำเร็จ');
+          } else {
+            alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+          }
+        })
+        .catch(error => {
+          console.error('Error deleting department info:', error);
+          alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+        });
       }
     }
 
