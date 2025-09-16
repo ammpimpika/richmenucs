@@ -104,7 +104,6 @@
               <tr class="bg-gray-200">
                 <th class="border border-gray-300 px-4 py-2 text-left">หน้าเว็บ</th>
                 <th class="border border-gray-300 px-4 py-2 text-center">จำนวนผู้เข้าชมทั้งหมด</th>
-                <th class="border border-gray-300 px-4 py-2 text-center">เปอร์เซ็นต์</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -192,12 +191,11 @@ async function renderVisitorReport() {
       row.innerHTML = `
         <td class="border border-gray-300 px-4 py-2">${page.page_name}</td>
         <td class="border border-gray-300 px-4 py-2 text-center">${page.total_count}</td>
-        <td class="border border-gray-300 px-4 py-2 text-center">${page.percentage}%</td>
       `;
       pageSummaryTable.appendChild(row);
     });
   } else {
-    pageSummaryTable.innerHTML = '<tr><td colspan="3" class="border border-gray-300 px-4 py-2 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
+    pageSummaryTable.innerHTML = '<tr><td colspan="2" class="border border-gray-300 px-4 py-2 text-center text-gray-500">ไม่พบข้อมูล</td></tr>';
   }
   
   // สร้างกราฟผู้เข้าชม
