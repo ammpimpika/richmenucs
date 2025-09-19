@@ -19,7 +19,7 @@
         </div>
         <div class="flex-1">
           <label class="block mb-1">เงินเดือนเริ่มต้น</label>
-          <input type="number" id="startingSalary" name="starting_salary" class="w-full border rounded px-3 py-2" required>
+          <input type="text" id="startingSalary" name="starting_salary" class="w-full border rounded px-3 py-2" placeholder="เช่น 25,000 หรือ 25000" required>
         </div>
         <div class="flex-1">
           <label class="block mb-1">จุดเด่น/รายละเอียด</label>
@@ -49,56 +49,6 @@
     </div>
   </div>
   <script>
-    // โหลดข้อมูลอาชีพ
-    function loadCareers() {
-      fetch('api/careers.php')
-        .then(res => res.json())
-        .then(data => {
-          const table = document.getElementById('careerTable');
-          table.innerHTML = '';
-          data.forEach(item => {
-            table.innerHTML += `
-              <tr>
-                <td class="py-2">${item.job_title}</td>
-                <td class="py-2">${item.starting_salary}</td>
-                <td class="py-2 text-left whitespace-pre-line">${item.highlight}</td>
-                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
-                  <button onclick="editCareer(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
-                  <button onclick="deleteCareer(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
-                </td>
-              </tr>
-            `;
-          });
-        });
-    }
-
-    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
-    document.getElementById('careerForm').onsubmit = function(e) {
-      e.preventDefault();
-      const form = document.getElementById('careerForm');
-      const formData = new FormData(form);
-      fetch('api/careers.php', {
-        method: 'POST',
-        body: formData
-      }).then(res => res.json())
-        .then(() => {
-          resetForm();
-          loadCareers();
-        });
-    };
-
-    // แก้ไข
-    function editCareer(id) {
-      fetch('api/careers.php?id=' + id)
-        .then(res => res.json())
-        .then(item => {
-          document.getElementById('careerId').value = item.id;
-          document.getElementById('jobTitle').value = item.job_title;
-          document.getElementById('startingSalary').value = item.starting_salary;
-          document.getElementById('highlight').value = item.highlight;
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
 
     // ลบ
     function deleteCareer(id) {
@@ -119,6 +69,92 @@
     function resetForm() {
       document.getElementById('careerForm').reset();
       document.getElementById('careerId').value = '';
+    }
+
+    // จัดการการป้อนข้อมูลเงินเดือน
+    document.getElementById('startingSalary').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/[^\d,]/g, ''); // อนุญาตเฉพาะตัวเลขและจุลภาค
+      
+      // จัดรูปแบบให้มีจุลภาคทุก 3 หลัก
+      if (value.length > 0) {
+        // ลบจุลภาคเดิมออก
+        value = value.replace(/,/g, '');
+        
+        // เพิ่มจุลภาคใหม่
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      
+      e.target.value = value;
+    });
+
+    // จัดการการส่งฟอร์ม - ลบจุลภาคออกก่อนส่ง
+    document.getElementById('careerForm').addEventListener('submit', function(e) {
+      const salaryInput = document.getElementById('startingSalary');
+      const originalValue = salaryInput.value;
+      
+      // ลบจุลภาคออกก่อนส่ง
+      salaryInput.value = originalValue.replace(/,/g, '');
+      
+      // ส่งฟอร์ม
+      const formData = new FormData(this);
+      fetch('api/careers.php', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json())
+        .then(() => {
+          resetForm();
+          loadCareers();
+        });
+      
+      // คืนค่าจุลภาคกลับมา
+      salaryInput.value = originalValue;
+      
+      e.preventDefault();
+    });
+
+    // แก้ไขฟังก์ชัน editCareer เพื่อแสดงจุลภาค
+    function editCareer(id) {
+      fetch('api/careers.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('careerId').value = item.id;
+          document.getElementById('jobTitle').value = item.job_title;
+          
+          // แสดงเงินเดือนพร้อมจุลภาค
+          const salary = item.starting_salary || '';
+          const formattedSalary = salary.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          document.getElementById('startingSalary').value = formattedSalary;
+          
+          document.getElementById('highlight').value = item.highlight;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // แก้ไขฟังก์ชัน loadCareers เพื่อแสดงจุลภาคในตาราง
+    function loadCareers() {
+      fetch('api/careers.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('careerTable');
+          table.innerHTML = '';
+          data.forEach(item => {
+            // แสดงเงินเดือนพร้อมจุลภาค
+            const salary = item.starting_salary || '';
+            const formattedSalary = salary.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.job_title}</td>
+                <td class="py-2">${formattedSalary}</td>
+                <td class="py-2 text-left whitespace-pre-line">${item.highlight}</td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editCareer(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteCareer(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
     }
 
     // โหลดข้อมูลเมื่อเปิดหน้า
