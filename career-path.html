@@ -13,6 +13,29 @@
     <div id="careerList"></div>
   </div>
   <script>
+    // ฟังก์ชันจัดรูปแบบเงินเดือนสำหรับแสดงผล
+    function formatSalaryDisplay(salary) {
+      if (!salary) return '-';
+      
+      // แยกส่วนก่อนและหลังขีด (ถ้ามี)
+      const parts = salary.toString().split(' - ');
+      let formattedParts = [];
+      
+      parts.forEach(part => {
+        // ลบจุลภาคเดิมออก
+        part = part.replace(/,/g, '');
+        
+        // เพิ่มจุลภาคใหม่
+        if (part.length > 0) {
+          part = part.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        formattedParts.push(part);
+      });
+      
+      return formattedParts.join(' - ');
+    }
+
     fetch('api/careers.php')
       .then(res => res.json())
       .then(data => {
@@ -22,11 +45,15 @@
         }
         let html = '<div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">';
         data.forEach(item => {
+          // จัดรูปแบบเงินเดือนพร้อมจุลภาค
+          const formattedSalary = formatSalaryDisplay(item.starting_salary);
+          const salaryDisplay = formattedSalary !== '-' ? formattedSalary + ' บาท' : '-';
+          
           html += `
             <div class="bg-white border border-indigo-100 rounded-xl shadow-md p-5 flex flex-col justify-between min-h-[180px] hover:shadow-lg transition">
               <div>
                 <div class="font-bold text-lg md:text-xl text-indigo-700 mb-2">${item.job_title || ''}</div>
-                <div class="text-slate-700 mb-2"><span class="font-semibold">เงินเดือนเริ่มต้น:</span> <span class="text-green-600 font-bold">${item.starting_salary ? item.starting_salary + ' บาท' : '-'}</span></div>
+                <div class="text-slate-700 mb-2"><span class="font-semibold">เงินเดือนเริ่มต้น:</span> <span class="text-green-600 font-bold">${salaryDisplay}</span></div>
                 <div class="text-slate-600 text-base md:text-sm lg:text-base whitespace-pre-line">${item.highlight || ''}</div>
               </div>
             </div>
@@ -34,6 +61,10 @@
         });
         html += '</div>';
         document.getElementById('careerList').innerHTML = html;
+      })
+      .catch(err => {
+        console.error('Error loading careers:', err);
+        document.getElementById('careerList').innerHTML = '<div class="text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูลอาชีพ</div>';
       });
   </script>
 
