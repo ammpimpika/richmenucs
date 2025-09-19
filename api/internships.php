@@ -4,7 +4,18 @@ header('Content-Type: application/json');
 @ini_set('upload_tmp_dir', sys_get_temp_dir());
 @ini_set('post_max_size', '12M');
 @ini_set('upload_max_filesize', '12M');
-$conn = getConnection();
+
+// Error handling
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+try {
+    $conn = getConnection();
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $e->getMessage()]);
+    exit;
+}
 
 function uploadErrorMessage($code) {
     $map = [
@@ -109,29 +120,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image_url = $stmt->fetchColumn();
     }
 
-    if (!empty($_POST['id'])) {
-        // ลบไฟล์ภาพเดิมถ้ามีการอัปโหลดใหม่
-        if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
-            $stmt = $conn->prepare("SELECT image_url FROM internships WHERE id=?");
-            $stmt->execute([$_POST['id']]);
-            $old_img = $stmt->fetchColumn();
-            if ($old_img) {
-                // ลบจาก temp directory (Railway)
-                $tempPath = sys_get_temp_dir() . '/uploads/' . $old_img;
-                if (file_exists($tempPath)) unlink($tempPath);
-                
-                // ลบจาก public directory (local development)
-                $publicPath = __DIR__ . '/../public/uploads/' . $old_img;
-                if (file_exists($publicPath)) unlink($publicPath);
+    try {
+        if (!empty($_POST['id'])) {
+            // ลบไฟล์ภาพเดิมถ้ามีการอัปโหลดใหม่
+            if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
+                $stmt = $conn->prepare("SELECT image_url FROM internships WHERE id=?");
+                $stmt->execute([$_POST['id']]);
+                $old_img = $stmt->fetchColumn();
+                if ($old_img) {
+                    // ลบจาก temp directory (Railway)
+                    $tempPath = sys_get_temp_dir() . '/uploads/' . $old_img;
+                    if (file_exists($tempPath)) unlink($tempPath);
+                    
+                    // ลบจาก public directory (local development)
+                    $publicPath = __DIR__ . '/../public/uploads/' . $old_img;
+                    if (file_exists($publicPath)) unlink($publicPath);
+                }
+            }
+            $stmt = $conn->prepare("UPDATE internships SET company_name=?, description=?, image_url=? WHERE id=?");
+            $result = $stmt->execute([$_POST['company_name'], $_POST['description'], $image_url, $_POST['id']]);
+            
+            if (!$result) {
+                throw new Exception('Failed to update internship data');
+            }
+        } else {
+            $stmt = $conn->prepare("INSERT INTO internships (company_name, description, image_url) VALUES (?, ?, ?)");
+            $result = $stmt->execute([$_POST['company_name'], $_POST['description'], $image_url]);
+            
+            if (!$result) {
+                throw new Exception('Failed to insert internship data');
             }
         }
-        $stmt = $conn->prepare("UPDATE internships SET company_name=?, description=?, image_url=? WHERE id=?");
-        $stmt->execute([$_POST['company_name'], $_POST['description'], $image_url, $_POST['id']]);
-    } else {
-        $stmt = $conn->prepare("INSERT INTO internships (company_name, description, image_url) VALUES (?, ?, ?)");
-        $stmt->execute([$_POST['company_name'], $_POST['description'], $image_url]);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
     }
-    echo json_encode(['success' => true]);
     exit;
 }
 

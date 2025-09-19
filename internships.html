@@ -92,14 +92,24 @@
       const formData = new FormData(form);
       
       const id = document.getElementById('internshipId').value;
-      const url = id ? `api/internships.php?id=${id}` : 'api/internships.php';
-      const method = id ? 'PUT' : 'POST';
+      const url = 'api/internships.php';
+      const method = 'POST';
+      
+      // เพิ่ม ID ถ้าเป็นการแก้ไข
+      if (id) {
+        formData.append('id', id);
+      }
       
       fetch(url, {
         method: method,
         body: formData
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (data.success) {
           alert(id ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ');
@@ -111,7 +121,7 @@
       })
       .catch(err => {
         console.error('Error saving internship:', err);
-        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
       });
     };
 

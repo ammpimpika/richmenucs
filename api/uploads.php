@@ -47,14 +47,14 @@ if (file_exists($file)) {
     exit;
 }
 
-// ถ้าไม่เจอไฟล์ ให้ลองหาไฟล์ dress อื่นที่มีอยู่
+// ถ้าไม่เจอไฟล์ ให้ลองหาไฟล์ fallback ที่มีอยู่
 $tempDir = sys_get_temp_dir() . '/uploads/';
 $fallbackFile = null;
 
 if (is_dir($tempDir)) {
     $files = scandir($tempDir);
     foreach($files as $file) {
-        if ($file != '.' && $file != '..' && strpos($file, 'dress_') === 0) {
+        if ($file != '.' && $file != '..' && (strpos($file, 'dress_') === 0 || strpos($file, 'internship_') === 0)) {
             $fallbackFile = $file;
             break;
         }
