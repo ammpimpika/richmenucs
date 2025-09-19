@@ -19,7 +19,7 @@
         </div>
         <div class="flex-1">
           <label class="block mb-1">เงินเดือนเริ่มต้น</label>
-          <input type="text" id="startingSalary" name="starting_salary" class="w-full border rounded px-3 py-2" placeholder="เช่น 25,000 หรือ 25000" required>
+          <input type="text" id="startingSalary" name="starting_salary" class="w-full border rounded px-3 py-2" placeholder="เช่น 25,000 หรือ 28,875 - 52,500" required>
         </div>
         <div class="flex-1">
           <label class="block mb-1">จุดเด่น/รายละเอียด</label>
@@ -73,15 +73,28 @@
 
     // จัดการการป้อนข้อมูลเงินเดือน
     document.getElementById('startingSalary').addEventListener('input', function(e) {
-      let value = e.target.value.replace(/[^\d,]/g, ''); // อนุญาตเฉพาะตัวเลขและจุลภาค
+      let value = e.target.value.replace(/[^\d,-\s]/g, ''); // อนุญาตเฉพาะตัวเลข, จุลภาค, ขีด, และช่องว่าง
       
       // จัดรูปแบบให้มีจุลภาคทุก 3 หลัก
       if (value.length > 0) {
-        // ลบจุลภาคเดิมออก
-        value = value.replace(/,/g, '');
+        // แยกส่วนก่อนและหลังขีด (ถ้ามี)
+        const parts = value.split('-');
+        let formattedParts = [];
         
-        // เพิ่มจุลภาคใหม่
-        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        parts.forEach((part, index) => {
+          // ลบช่องว่างและจุลภาคเดิมออก
+          part = part.trim().replace(/,/g, '');
+          
+          // เพิ่มจุลภาคใหม่
+          if (part.length > 0) {
+            part = part.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          }
+          
+          formattedParts.push(part);
+        });
+        
+        // รวมส่วนต่างๆ กลับมา
+        value = formattedParts.join(' - ');
       }
       
       e.target.value = value;
@@ -92,7 +105,7 @@
       const salaryInput = document.getElementById('startingSalary');
       const originalValue = salaryInput.value;
       
-      // ลบจุลภาคออกก่อนส่ง
+      // ลบจุลภาคออกก่อนส่ง (เก็บขีดและช่องว่างไว้)
       salaryInput.value = originalValue.replace(/,/g, '');
       
       // ส่งฟอร์ม
@@ -122,12 +135,35 @@
           
           // แสดงเงินเดือนพร้อมจุลภาค
           const salary = item.starting_salary || '';
-          const formattedSalary = salary.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const formattedSalary = formatSalaryDisplay(salary);
           document.getElementById('startingSalary').value = formattedSalary;
           
           document.getElementById('highlight').value = item.highlight;
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+    }
+
+    // ฟังก์ชันจัดรูปแบบเงินเดือนสำหรับแสดงผล
+    function formatSalaryDisplay(salary) {
+      if (!salary) return '';
+      
+      // แยกส่วนก่อนและหลังขีด (ถ้ามี)
+      const parts = salary.toString().split(' - ');
+      let formattedParts = [];
+      
+      parts.forEach(part => {
+        // ลบจุลภาคเดิมออก
+        part = part.replace(/,/g, '');
+        
+        // เพิ่มจุลภาคใหม่
+        if (part.length > 0) {
+          part = part.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        formattedParts.push(part);
+      });
+      
+      return formattedParts.join(' - ');
     }
 
     // แก้ไขฟังก์ชัน loadCareers เพื่อแสดงจุลภาคในตาราง
@@ -140,7 +176,7 @@
           data.forEach(item => {
             // แสดงเงินเดือนพร้อมจุลภาค
             const salary = item.starting_salary || '';
-            const formattedSalary = salary.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            const formattedSalary = formatSalaryDisplay(salary);
             
             table.innerHTML += `
               <tr>
