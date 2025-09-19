@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ข้อมูลฝึกงาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 min-h-screen">
+  <div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-center mb-6 text-white">ข้อมูลฝึกงาน</h1>
+    <div id="internshipList"></div>
+  </div>
+  <script>
+    fetch('api/internships.php')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.length) {
+          document.getElementById('internshipList').innerHTML = '<div class="text-center text-gray-500">ไม่พบข้อมูลฝึกงาน</div>';
+          return;
+        }
+        let html = '<div class="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">';
+        data.forEach(item => {
+          html += `
+    <div class="bg-white border border-slate-200 rounded-xl shadow p-5 flex flex-col items-center">
+      <div class="font-bold text-indigo-700 text-lg mb-2">${item.company_name || ''}</div>
+      ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url}" alt="Company Logo" class="w-full max-w-md h-60 md:h-72 object-cover rounded mb-4 shadow-md">` : '<div class="bg-gray-200 w-full h-60 md:h-72 rounded flex items-center justify-center text-gray-500">ไม่มีรูป</div>'}
+      <div class="text-slate-700 text-center whitespace-pre-line text-sm md:text-base">${item.description || ''}</div>
+    </div>
+  `;
+        });
+        html += '</div>';
+        document.getElementById('internshipList').innerHTML = html;
+      })
+      .catch(err => {
+        console.error('Error loading internships:', err);
+        document.getElementById('internshipList').innerHTML = '<div class="text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูลฝึกงาน</div>';
+      });
+  </script>
+
+  <!-- Counter Section -->
+  <div style="margin:20px 0; text-align:center; font-size:16px; color:#FFFFFF;">
+    <span class="text-white">👁 ผู้เข้าชม </span><span id="count" class="text-white">0</span><span class="text-white"> คน</span>
+  </div>
+  <script>
+    fetch("counter.php?page=internship")
+      .then(res => res.json())
+      .then(data => document.getElementById("count").textContent = data.visits)
+      .catch(err => console.error(err));
+  </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการข้อมูลฝึกงาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">จัดการข้อมูลฝึกงาน</h1>
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="bg-white rounded shadow p-6 mb-6">
+      <form id="internshipForm" class="space-y-4 flex flex-col md:flex-row md:items-end md:space-x-4 md:space-y-0" enctype="multipart/form-data">
+        <input type="hidden" id="internshipId" name="id">
+        <div class="flex-1">
+          <label class="block mb-1">ชื่อบริษัท</label>
+          <input type="text" id="companyName" name="company_name" class="w-full border rounded px-3 py-2" required>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">รายละเอียด</label>
+          <textarea id="description" name="description" rows="2" class="w-full border rounded px-3 py-2" required></textarea>
+        </div>
+        <div class="flex-1">
+          <label class="block mb-1">อัปโหลดรูปภาพ</label>
+          <input type="file" id="imageFile" name="image_file" accept="image/*" class="w-full border rounded px-3 py-2">
+          <div id="preview" class="mt-2"></div>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">บันทึก</button>
+          <button type="button" onclick="resetForm()" class="px-4 py-2 rounded bg-gray-300">ล้าง</button>
+        </div>
+      </form>
+    </div>
+    <!-- Data Table -->
+    <div class="bg-white rounded shadow p-4">
+      <table class="min-w-full text-center">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="py-2">ชื่อบริษัท</th>
+            <th class="py-2">รายละเอียด</th>
+            <th class="py-2">รูปภาพ</th>
+            <th class="py-2">การจัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="internshipTable">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // โหลดข้อมูลฝึกงาน
+    function loadInternships() {
+      fetch('api/internships.php')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('internshipTable');
+          table.innerHTML = '';
+          
+          if (data.length === 0) {
+            table.innerHTML = '<tr><td colspan="4" class="py-4 text-gray-500">ไม่พบข้อมูล</td></tr>';
+            return;
+          }
+          
+          data.forEach(item => {
+            table.innerHTML += `
+              <tr>
+                <td class="py-2">${item.company_name}</td>
+                <td class="py-2 text-left whitespace-pre-line">${item.description}</td>
+                <td class="py-2">
+                  ${item.image_url ? `<img src="api/uploads.php?file=${item.image_url}" alt="Company Logo" class="w-16 h-16 object-cover rounded mx-auto">` : 'ไม่มีรูปภาพ'}
+                </td>
+                <td class="py-2 flex flex-col gap-2 md:flex-row md:justify-center">
+                  <button onclick="editInternship(${item.id})" class="bg-yellow-400 px-2 py-1 rounded text-white">แก้ไข</button>
+                  <button onclick="deleteInternship(${item.id})" class="bg-red-500 px-2 py-1 rounded text-white">ลบ</button>
+                </td>
+              </tr>
+            `;
+          });
+        })
+        .catch(err => {
+          console.error('Error loading internships:', err);
+          document.getElementById('internshipTable').innerHTML = '<tr><td colspan="4" class="py-4 text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        });
+    }
+
+    // ฟอร์มเพิ่ม/แก้ไขข้อมูล
+    document.getElementById('internshipForm').onsubmit = function(e) {
+      e.preventDefault();
+      const form = document.getElementById('internshipForm');
+      const formData = new FormData(form);
+      
+      const id = document.getElementById('internshipId').value;
+      const url = id ? `api/internships.php?id=${id}` : 'api/internships.php';
+      const method = id ? 'PUT' : 'POST';
+      
+      fetch(url, {
+        method: method,
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(id ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ');
+          resetForm();
+          loadInternships();
+        } else {
+          alert('เกิดข้อผิดพลาด: ' + (data.message || 'ไม่ทราบสาเหตุ'));
+        }
+      })
+      .catch(err => {
+        console.error('Error saving internship:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      });
+    };
+
+    // แก้ไข
+    function editInternship(id) {
+      fetch('api/internships.php?id=' + id)
+        .then(res => res.json())
+        .then(item => {
+          document.getElementById('internshipId').value = item.id;
+          document.getElementById('companyName').value = item.company_name;
+          document.getElementById('description').value = item.description;
+          
+          // แสดงรูปภาพปัจจุบัน
+          const preview = document.getElementById('preview');
+          if (item.image_url) {
+            preview.innerHTML = `<img src="api/uploads.php?file=${item.image_url}" alt="Current" class="w-20 h-20 object-cover rounded">`;
+          }
+          
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(err => {
+          console.error('Error loading internship:', err);
+          alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        });
+    }
+
+    // ลบ
+    function deleteInternship(id) {
+      if (confirm('ยืนยันการลบข้อมูล?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('api/internships.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('ลบข้อมูลสำเร็จ');
+            loadInternships();
+          } else {
+            alert('เกิดข้อผิดพลาด: ' + (data.message || 'ไม่ทราบสาเหตุ'));
+          }
+        })
+        .catch(err => {
+          console.error('Error deleting internship:', err);
+          alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+        });
+      }
+    }
+
+    // ล้างฟอร์ม
+    function resetForm() {
+      document.getElementById('internshipForm').reset();
+      document.getElementById('internshipId').value = '';
+      document.getElementById('preview').innerHTML = '';
+    }
+
+    // Image preview
+    document.getElementById('imageFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('preview');
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded">`;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.innerHTML = '';
+      }
+    });
+
+    // โหลดข้อมูลเมื่อเปิดหน้า
+    loadInternships();
+  </script>
+</body>
+</html>
