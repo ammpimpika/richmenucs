@@ -17,15 +17,18 @@ try {
         // อัปเดทจำนวนผู้เข้าชม
         $stmt = $conn->prepare("UPDATE visitors SET `count` = `count` + 1 WHERE page_name = ? AND visit_date = ?");
         $stmt->execute([$page, $today]);
-        $countToday = $existing['count'] + 1;
     } else {
         // เพิ่มข้อมูลใหม่
         $stmt = $conn->prepare("INSERT INTO visitors (page_name, visit_date, `count`) VALUES (?, ?, 1)");
         $stmt->execute([$page, $today]);
-        $countToday = 1;
     }
 
-    echo json_encode(['visits' => $countToday]);
+    // คำนวณจำนวนผู้เข้าชมทั้งหมดของหน้านี้
+    $stmt = $conn->prepare("SELECT SUM(`count`) as total_visits FROM visitors WHERE page_name = ?");
+    $stmt->execute([$page]);
+    $totalVisits = $stmt->fetch(PDO::FETCH_ASSOC)['total_visits'] ?? 0;
+
+    echo json_encode(['visits' => $totalVisits]);
 
 } catch (Exception $e) {
     echo json_encode(['visits' => 0, 'error' => $e->getMessage()]);
